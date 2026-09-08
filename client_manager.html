@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoidVision // 核心客户管理与资产审计系统</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', 'Share Tech Mono', 'Microsoft YaHei', sans-serif !important; letter-spacing: 0.8px; }
+        body { background-color: #0b131d; color: #00ffcc; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        /* 独立登录门禁 */
+        .auth-gate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 8, 0.95); z-index: 999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); }
+        .auth-gate.hidden { display: none; }
+        .auth-box { background: #111a28; border: 1px solid #00ffcc; border-radius: 12px; padding: 30px; width: 400px; box-shadow: 0 0 40px rgba(0,255,204,0.25); text-align: center; }
+        .auth-input { width: 100%; padding: 12px; background: #0b131d; border: 1px solid rgba(0,255,204,0.4); color: #00ffcc; font-size: 15px; font-family: 'Orbitron', sans-serif !important; border-radius: 6px; margin: 12px 0; outline: none; }
+        .auth-btn { background: rgba(0,255,204,0.2); border: 1px solid #00ffcc; color: #00ffcc; padding: 12px; font-family: 'Orbitron', sans-serif; font-weight: bold; width: 100%; border-radius: 6px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .auth-btn:hover { background: #00ffcc; color: #000; box-shadow: 0 0 15px #00ffcc; }
+
+        /* 高档赛博朋克风统一弹窗 (带确认与取消键) */
+        .cyber-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 8, 0.85); z-index: 1000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .cyber-modal.active { display: flex; }
+        .cyber-modal-box { background: #111a28; border: 1px solid #00ffcc; border-radius: 10px; padding: 25px; width: 420px; box-shadow: 0 0 35px rgba(0,255,204,0.3); }
+        .modal-title { font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 15px; color: #fff; margin-bottom: 12px; border-bottom: 1px solid rgba(0,255,204,0.2); padding-bottom: 8px; }
+        .modal-label { font-size: 11px; color: #8892b0; margin-bottom: 4px; display: block; text-transform: uppercase; }
+        .modal-input { width: 100%; padding: 10px; background: #0b131d; border: 1px solid rgba(0,255,204,0.3); color: #00ffcc; font-size: 13px; border-radius: 4px; margin-bottom: 12px; outline: none; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 15px; }
+        .modal-btn { flex: 1; padding: 10px; font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 11px; border-radius: 4px; cursor: pointer; border: none; text-align: center; }
+        .btn-confirm { background: rgba(0,255,204,0.2); border: 1px solid #00ffcc; color: #00ffcc; }
+        .btn-confirm:hover { background: #00ffcc; color: #000; }
+        .btn-cancel { background: rgba(255,51,102,0.15); border: 1px solid #ff3366; color: #ff3366; }
+        .btn-cancel:hover { background: #ff3366; color: #fff; }
+
+        header { height: 55px; border-bottom: 1px solid rgba(0, 255, 204, 0.2); display: flex; justify-content: space-between; align-items: center; padding: 0 25px; background: rgba(11, 19, 29, 0.95); backdrop-filter: blur(10px); z-index: 50; flex-shrink: 0; }
+        .logo { font-family: 'Orbitron', sans-serif !important; font-weight: 900; font-size: 17px; color: #fff; text-shadow: 0 0 10px #00ffcc; }
+        .tag { color: #00ff66; font-weight: bold; font-size: 11px; background: rgba(0,255,102,0.1); padding: 3px 8px; border-radius: 3px; border: 1px solid rgba(0,255,102,0.3); }
+
+        .back-btn { background: rgba(0,255,204,0.1); border: 1px solid rgba(0,255,204,0.3); color: #00ffcc; padding: 6px 14px; font-size: 12px; font-weight: bold; border-radius: 4px; cursor: pointer; font-family: 'Orbitron', sans-serif; }
+        .back-btn:hover { background: #00ffcc; color: #000; }
+
+        main { flex: 1; display: grid; grid-template-columns: 400px 1fr; grid-gap: 14px; padding: 14px; overflow: hidden; height: calc(100vh - 85px); }
+
+        .cyber-panel { background: #111a28; border: 1px solid rgba(0, 255, 204, 0.15); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.5); overflow: hidden; }
+        .panel-title { font-family: 'Orbitron', sans-serif !important; font-size: 13px; font-weight: 700; color: #00ffcc; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid rgba(0,255,204,0.15); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+
+        .search-box { width: 100%; padding: 10px 14px; background: #0b131d; border: 1px solid rgba(0,255,204,0.2); color: #00ffcc; font-size: 13px; border-radius: 6px; outline: none; margin-bottom: 10px; }
+        
+        .client-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px; }
+        .client-item { background: rgba(3,5,8,0.7); border: 1px solid rgba(0,255,204,0.1); border-radius: 6px; padding: 12px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .client-item:hover, .client-item.active { border-color: #00ffcc; background: rgba(0,255,204,0.08); }
+        
+        .client-info span { display: block; }
+        .client-uid { font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 13px; color: #fff; }
+        .client-meta { font-size: 11.5px; color: #8892b0; margin-top: 3px; font-family: 'Share Tech Mono'; }
+
+        .mgmt-toolbar { display: flex; gap: 8px; margin-bottom: 10px; }
+        .tool-btn { flex: 1; background: rgba(0,255,204,0.1); border: 1px solid rgba(0,255,204,0.3); color: #00ffcc; padding: 8px; font-size: 11px; font-weight: bold; border-radius: 4px; cursor: pointer; text-align: center; font-family: 'Orbitron', sans-serif; }
+        .tool-btn:hover { background: #00ffcc; color: #000; }
+        .tool-btn.danger { background: rgba(255,51,102,0.1); border-color: rgba(255,51,102,0.3); color: #ff3366; }
+        .tool-btn.danger:hover { background: #ff3366; color: #fff; }
+
+        .detail-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+        .detail-stat-box { background: #0b131d; border: 1px solid rgba(0,255,204,0.15); border-radius: 6px; padding: 10px; text-align: center; }
+        .stat-label { font-size: 10.5px; color: #8892b0; text-transform: uppercase; }
+        .stat-val { font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: bold; color: #fff; margin-top: 4px; }
+        .stat-val.green { color: #00ff66; }
+        .stat-val.red { color: #ff3366; }
+
+        .action-row { display: flex; gap: 10px; margin-top: 15px; justify-content: flex-end; }
+        .action-btn { padding: 6px 12px; font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 10px; border-radius: 4px; cursor: pointer; text-align: center; border: none; transition: 0.3s; }
+        .btn-freeze { background: rgba(255,51,102,0.1); border: 1px solid rgba(255,51,102,0.3); color: #ff3366; }
+        .btn-freeze:hover { background: #ff3366; color: #fff; }
+        .btn-adjust { background: rgba(0,255,204,0.1); border: 1px solid rgba(0,255,204,0.3); color: #00ffcc; }
+        .btn-adjust:hover { background: #00ffcc; color: #000; }
+
+        footer { height: 32px; border-top: 1px solid rgba(0, 255, 204, 0.2); background: rgba(11, 19, 29, 0.95); display: flex; align-items: center; padding: 0 25px; font-size: 12px; color: #00ffcc; overflow: hidden; white-space: nowrap; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+    <div class="auth-gate" id="authGate">
+        <div class="auth-box">
+            <div style="font-family:'Orbitron', sans-serif; font-weight:bold; font-size:16px; color:#fff;">🛡️ 客户管理中心权限验证</div>
+            <div style="font-size:12px; color:#8892b0; margin-top:6px;">请输入管理员二级授权密钥 (Master PIN)</div>
+            <input type="text" id="mgrUser" class="auth-input" placeholder="Admin Username (默认: admin)" value="admin">
+            <input type="password" id="mgrPass" class="auth-input" placeholder="Master Password (默认: 8888)" value="8888">
+            <button class="auth-btn" onclick="verifyLogin()">[ 验证身份并进入后台 ]</button>
+            <div style="font-size:11px; color:#ff3366; margin-top:12px; cursor:pointer;" onclick="window.location.href='admin.html'">← 返回主战情大屏</div>
+        </div>
+    </div>
+
+    <!-- 录入新客户开户弹窗 -->
+    <div class="cyber-modal" id="addClientModal">
+        <div class="cyber-modal-box">
+            <div class="modal-title">➕ 手动录入并开通新客户账户</div>
+            <label class="modal-label">为客户设置专属登录账号 (Username)</label>
+            <input type="text" id="newClientUser" class="modal-input" placeholder="例如: client_viper99">
+            
+            <label class="modal-label">为客户设置专属登录密码 (Password)</label>
+            <input type="text" id="newClientPass" class="modal-input" placeholder="例如: pass_882026">
+            
+            <div style="font-size:10.5px; color:#8892b0; margin-bottom:12px;">* 提示：手动开户后将账号密码交予客户。客户在客户端凭此账号登录并成功完成 API 鉴权后，其 Web3 钱包地址将自动同步同行记录于后台！</div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn btn-confirm" onclick="confirmAddClient()">[ 确认开通 ]</button>
+                <button class="modal-btn btn-cancel" onclick="closeAddClientModal()">[ 取消 ]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统一高档确认/提示弹窗 (带有确认与取消键，彻底消灭 undefined 漏洞) -->
+    <div class="cyber-modal" id="actionConfirmModal">
+        <div class="cyber-modal-box" style="text-align: center;">
+            <div class="modal-title" id="actionTitle" style="color: #ff3366;">SYSTEM ALERT</div>
+            <div id="actionMsg" style="font-size: 13px; color: #fff; margin: 15px 0; line-height: 1.5;">操作确认提示</div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-confirm" id="modalConfirmBtn">[ 确认执行 ]</button>
+                <button class="modal-btn btn-cancel" onclick="closeActionModal()">[ 取消 ]</button>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo">VOIDVISION CRM <span class="tag">去中心化加密资产审计中心</span></div>
+        <button class="back-btn" onclick="window.location.href='admin.html'">[ ⬅ 返回主指挥大屏 ]</button>
+    </header>
+    
+    <main>
+        <div class="cyber-panel">
+            <div class="panel-title">
+                <span>Client Directory (加密钱包名录)</span>
+                <span style="font-size:11px; color:#00ff66;">总数: <span id="clientCount">3</span> 位</span>
+            </div>
+            
+            <div class="mgmt-toolbar">
+                <button class="tool-btn" onclick="openAddClientModal()">[ ＋ 手动录入客户 ]</button>
+                <button class="tool-btn danger" onclick="promptRemoveClient()">[ － 注销/删除客户 ]</button>
+            </div>
+
+            <input type="text" class="search-box" placeholder="🔍 搜索 UID 或 钱包地址..." oninput="filterClients(this.value)">
+            
+            <div class="client-list" id="clientListContainer">
+                <div class="client-item active" onclick="loadClientDetail('8849', '0x42f89c45e...91a', 'client_jason', '$248,500.00', '+$34,200 (34.2%)', '$12,500.00', 'NORMAL')">
+                    <div class="client-info">
+                        <span class="client-uid">UID #8849 [账号: client_jason]</span>
+                        <span class="client-meta">钱包: 0x42f89c...91a | 净资: $248,500</span>
+                    </div>
+                    <span style="color:#00ff66; font-size:11px; font-weight:bold;">🟢 正常</span>
+                </div>
+                <div class="client-item" onclick="loadClientDetail('1024', '0x71c88e99a...88e', 'client_alex', '$112,000.00', '+$42,100 (68.5%)', '$5,000.00', 'NORMAL')">
+                    <div class="client-info">
+                        <span class="client-uid">UID #1024 [账号: client_alex]</span>
+                        <span class="client-meta">钱包: 0x71c88e...88e | 净资: $112,000</span>
+                    </div>
+                    <span style="color:#00ff66; font-size:11px; font-weight:bold;">🟢 正常</span>
+                </div>
+                <div class="client-item" onclick="loadClientDetail('3092', '0x99a32f11b...32f', 'client_elena', '$63,100.00', '-$14,200 (-18.4%)', '$22,000.00', 'WARNING')">
+                    <div class="client-info">
+                        <span class="client-uid">UID #3092 [账号: client_elena]</span>
+                        <span class="client-meta">钱包: 0x99a32f...32f | 净资: $63,100</span>
+                    </div>
+                    <span style="color:#ff3366; font-size:11px; font-weight:bold;">⚠️ 预警</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="cyber-panel">
+            <div class="panel-title">
+                <span id="detailHeader" style="font-size:13px;">Client Profile // UID #8849 - 资产审计档案</span>
+                <span style="font-size:11px; color:#ffcc00;" id="clientStatusTag">状态: 🟢 账户安全合规</span>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:14px; height:100%; overflow-y:auto; padding-right:4px;">
+                <div class="detail-grid">
+                    <div class="detail-stat-box">
+                        <div class="stat-label">当前净资产</div>
+                        <div class="stat-val" id="detNetWorth">$248,500.00</div>
+                    </div>
+                    <div class="detail-stat-box">
+                        <div class="stat-label">本月累计盈亏</div>
+                        <div class="stat-val green" id="detPnl">+$34,200.00</div>
+                    </div>
+                    <div class="detail-stat-box">
+                        <div class="stat-label">本月累计提现</div>
+                        <div class="stat-val" id="detWithdraw" style="color:#ffcc00;">$12,500.00</div>
+                    </div>
+                    <div class="detail-stat-box">
+                        <div class="stat-label">当前风控硬上限</div>
+                        <div class="stat-val" id="detLimit">25.0 USDC</div>
+                    </div>
+                </div>
+
+                <div style="background:#0b131d; border:1px solid rgba(0,255,204,0.15); border-radius:6px; padding:14px; font-size:12.5px; color:#8892b0; line-height:1.6;">
+                    <p style="color:#fff; font-weight:bold; margin-bottom:6px; font-size:13px;">🔐 去中心化身份与 Web3 钱包凭证</p>
+                    <p>绑定的登录账号: <span style="color:#00ffcc; font-weight:bold;" id="detAccount">client_jason</span> | 分配 UID: <span style="color:#00ffcc;" id="detUid">#8849</span></p>
+                    <p>绑定的接收/奖励钱包地址: <span style="font-family:'Share Tech Mono'; color:#00ffcc; font-size:13px;" id="detWallet">0x42f89c45e...91a (Polygon Mainnet)</span></p>
+                    <p style="margin-top:4px;">* 逻辑说明：您手动开户给客户账号密码后，客户在客户端登录即直接同行，其 Web3 钱包地址会自动同步同行记录于此档案。</p>
+                </div>
+
+                <div style="flex:1; background:#0b131d; border:1px solid rgba(0,255,204,0.15); border-radius:6px; padding:14px; overflow-y:auto;">
+                    <div style="font-family:'Orbitron', sans-serif; font-size:12px; color:#fff; margin-bottom:8px;">⚡ 该客户最近链上高频清算记录</div>
+                    <div style="font-size:11px; color:#8892b0; border-bottom:1px dashed rgba(0,255,204,0.1); padding-bottom:6px; margin-bottom:6px;">
+                        <div style="display:flex; justify-content:space-between; color:#fff;"><span>Arsenal vs Chelsea (⚽)</span><span style="color:#00ff66;">WIN (+$22.50)</span></div>
+                        <div style="font-family:'Share Tech Mono';">Hash: 0x9f8c...3b21 | Stake: 1,000 USDC</div>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <button class="action-btn btn-adjust" onclick="promptAdjustLimit()">[ ⚙️ 特批风控额度 ]</button>
+                    <button class="action-btn btn-freeze" onclick="promptFreezeAccount()">[ 🚨 冻结账户与提现 ]</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div style="font-family:'Share Tech Mono'; color:#8892b0;">V.V.A SECURE VAULT // 纯 Web3 钱包加密体系，完全规避敏感身份信息</div>
+    </footer>
+
+    <script>
+        function verifyLogin() {
+            const u = document.getElementById('mgrUser').value;
+            const p = document.getElementById('mgrPass').value;
+            if(u === 'admin' && p === '8888') {
+                document.getElementById('authGate').classList.add('hidden');
+            } else {
+                openActionModal("认证失败", "请输入正确的管理员用户名与 Master 密码。", null);
+            }
+        }
+
+        let currentUid = '8849';
+
+        function loadClientDetail(uid, wallet, username, networth, pnl, withdraw, status) {
+            currentUid = uid;
+            document.querySelectorAll('.client-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            document.getElementById('detailHeader').innerText = `Client Profile // UID #${uid} - 资产审计档案`;
+            document.getElementById('detNetWorth').innerText = networth;
+            
+            const pnlEl = document.getElementById('detPnl');
+            pnlEl.innerText = pnl;
+            pnlEl.className = pnl.includes('-') ? 'stat-val red' : 'stat-val green';
+
+            document.getElementById('detWithdraw').innerText = withdraw;
+            document.getElementById('detWallet').innerText = `${wallet} (Polygon Mainnet)`;
+            document.getElementById('detAccount').innerText = username;
+            document.getElementById('detUid').innerText = `#${uid}`;
+            
+            const tag = document.getElementById('clientStatusTag');
+            tag.innerText = status === 'NORMAL' ? '状态: 🟢 账户安全合规' : '状态: ⚠️ 账户已风控冻结';
+        }
+
+        function openAddClientModal() {
+            document.getElementById('newClientUser').value = '';
+            document.getElementById('newClientPass').value = '';
+            document.getElementById('addClientModal').classList.add('active');
+        }
+        function closeAddClientModal() {
+            document.getElementById('addClientModal').classList.remove('active');
+        }
+
+        function confirmAddClient() {
+            const username = document.getElementById('newClientUser').value.trim();
+            if(!username) {
+                openActionModal("输入错误", "请输入客户的专属登录账号！", null);
+                return;
+            }
+            const newUid = Math.floor(1000 + Math.random() * 9000);
+            const container = document.getElementById('clientListContainer');
+            
+            const newItem = document.createElement('div');
+            newItem.className = 'client-item';
+            newItem.onclick = function() { loadClientDetail(newUid, '等待 API 鉴权自动同步', username, '$0.00', '+$0.00 (0.0%)', '$0.00', 'NORMAL'); };
+            newItem.innerHTML = `
+                <div class="client-info">
+                    <span class="client-uid">UID #${newUid} [账号: ${username}]</span>
+                    <span class="client-meta">钱包: 待 API 鉴权自动同步 | 净资: $0.00</span>
+                </div>
+                <span style="color:#ffcc00; font-size:11px; font-weight:bold;">⏳ 待鉴权</span>
+            `;
+            container.prepend(newItem);
+            closeAddClientModal();
+            openActionModal("开户成功", `成功手动开通新客户账号：${username} (分配 UID: #${newUid})。\n\n* 逻辑提示：客户在客户端凭此账号密码登录即可直接通行，其 Web3 钱包地址将自动同步记录于此。`, null);
+        }
+
+        // 统一的高档弹窗控制器 (彻底消灭 undefined，带有确认与取消)
+        function openActionModal(title, msg, onConfirmCallback) {
+            document.getElementById('actionTitle').innerText = title;
+            document.getElementById('actionMsg').innerText = msg;
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+            
+            if(onConfirmCallback) {
+                confirmBtn.style.display = 'block';
+                confirmBtn.onclick = function() {
+                    onConfirmCallback();
+                    closeActionModal();
+                };
+            } else {
+                // 如果没有回调，说明只是单纯的提示通知，隐藏确认键或让其只作为关闭
+                confirmBtn.style.display = 'block';
+                confirmBtn.onclick = closeActionModal;
+            }
+            document.getElementById('actionConfirmModal').classList.add('active');
+        }
+
+        function closeActionModal() {
+            document.getElementById('actionConfirmModal').classList.remove('active');
+        }
+
+        // 特批风控额度弹窗
+        function promptAdjustLimit() {
+            openActionModal(
+                "⚙️ 风控额度特批", 
+                `确认要为当前选中的客户 (UID #${currentUid}) 调高单笔硬上限吗？\n\n调高后该客户可执行更高资金量的高频量化狙击。`, 
+                function() {
+                    openActionModal("特批成功", `已成功为 UID #${currentUid} 调高单笔硬上限至 100 USDC！`, null);
+                }
+            );
+        }
+
+        // 冻结账户弹窗
+        function promptFreezeAccount() {
+            openActionModal(
+                "🚨 安全警报：账户冻结确认", 
+                `确定要对 UID #${currentUid} 执行【冻结账户与提现】吗？\n\n[核心逻辑]：执行后将切断该钱包与智能合约路由的交互权限，自动狙击暂停。`, 
+                function() {
+                    openActionModal("执行成功", `UID #${currentUid} 已被系统底层强制风控冻结！`, null);
+                    document.getElementById('clientStatusTag').innerText = '状态: ⚠️ 账户已风控冻结';
+                }
+            );
+        }
+
+        // 注销/删除客户弹窗
+        function promptRemoveClient() {
+            openActionModal(
+                "🗑️ 注销/删除客户确认", 
+                `确认要永久注销并删除当前选中的 UID #${currentUid} 客户档案吗？此操作不可逆！`, 
+                function() {
+                    const activeEl = document.querySelector('.client-item.active');
+                    if(activeEl) {
+                        activeEl.remove();
+                        openActionModal("删除成功", `成功注销客户 UID #${currentUid}`, null);
+                    }
+                }
+            );
+        }
+
+        function filterClients(keyword) {
+            const items = document.querySelectorAll('.client-item');
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                item.style.display = text.includes(keyword.toLowerCase()) ? 'flex' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

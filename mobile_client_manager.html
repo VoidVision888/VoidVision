@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VoidVision CRM - Mobile Vault</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', 'Share Tech Mono', sans-serif !important; letter-spacing: 0.8px; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #0b131d; color: #00ffcc; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+        
+        /* 独立安全登录门禁 */
+        .auth-gate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 8, 0.95); z-index: 999; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .auth-gate.hidden { display: none; }
+        .auth-box { background: #111a28; border: 1px solid #00ffcc; border-radius: 12px; padding: 25px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 0 30px rgba(0,255,204,0.3); }
+        .auth-input { width: 100%; padding: 12px; background: #0b131d; border: 1px solid rgba(0,255,204,0.4); color: #00ffcc; font-size: 15px; font-family: 'Orbitron', sans-serif !important; border-radius: 6px; margin: 12px 0; outline: none; text-align: center; }
+        .auth-btn { background: rgba(0,255,204,0.2); border: 1px solid #00ffcc; color: #00ffcc; padding: 12px; font-family: 'Orbitron', sans-serif; font-weight: bold; width: 100%; border-radius: 6px; cursor: pointer; }
+
+        /* 赛博朋克风高档模态弹窗 (带确认与取消) */
+        .cyber-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 8, 0.85); z-index: 1000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); padding: 20px; }
+        .cyber-modal.active { display: flex; }
+        .cyber-modal-box { background: #111a28; border: 1px solid #00ffcc; border-radius: 10px; padding: 20px; width: 100%; max-width: 340px; box-shadow: 0 0 35px rgba(0,255,204,0.3); text-align: center; }
+        .modal-title { font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 14px; color: #fff; margin-bottom: 10px; border-bottom: 1px solid rgba(0,255,204,0.2); padding-bottom: 6px; }
+        .modal-input { width: 100%; padding: 10px; background: #0b131d; border: 1px solid rgba(0,255,204,0.3); color: #00ffcc; font-size: 13px; border-radius: 4px; margin-bottom: 10px; outline: none; }
+        .modal-actions { display: flex; gap: 8px; margin-top: 12px; }
+        .modal-btn { flex: 1; padding: 9px; font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 11px; border-radius: 4px; cursor: pointer; border: none; text-align: center; }
+        .btn-confirm { background: rgba(0,255,204,0.2); border: 1px solid #00ffcc; color: #00ffcc; }
+        .btn-cancel { background: rgba(255,51,102,0.15); border: 1px solid #ff3366; color: #ff3366; }
+
+        header { height: 50px; border-bottom: 1px solid rgba(0, 255, 204, 0.2); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; background: rgba(11, 19, 29, 0.95); position: sticky; top: 0; z-index: 50; }
+        .logo { font-family: 'Orbitron', sans-serif !important; font-weight: 900; font-size: 13px; color: #fff; text-shadow: 0 0 10px #00ffcc; }
+        .back-btn { background: rgba(0, 255, 204, 0.1); border: 1px solid rgba(0, 255, 204, 0.3); color: #00ffcc; padding: 5px 10px; font-size: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; font-family: 'Orbitron', sans-serif; }
+
+        main { flex: 1; padding: 14px; display: flex; flex-direction: column; gap: 16px; }
+        
+        .cyber-card { background: #111a28; border: 1px solid rgba(0, 255, 204, 0.15); border-radius: 8px; padding: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+        .card-title { font-family: 'Orbitron', sans-serif !important; font-size: 12px; font-weight: 700; color: #00ffcc; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid rgba(0,255,204,0.15); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* 手机端管理工具栏 */
+        .mgmt-toolbar { display: flex; gap: 6px; margin-bottom: 10px; }
+        .tool-btn { flex: 1; background: rgba(0,255,204,0.1); border: 1px solid rgba(0,255,204,0.3); color: #00ffcc; padding: 7px; font-size: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; text-align: center; font-family: 'Orbitron', sans-serif; }
+        .tool-btn.danger { background: rgba(255,51,102,0.1); border-color: rgba(255,51,102,0.3); color: #ff3366; }
+
+        .search-box { width: 100%; padding: 9px; background: #0b131d; border: 1px solid rgba(0,255,204,0.2); color: #00ffcc; font-size: 11px; border-radius: 6px; outline: none; margin-bottom: 10px; }
+        
+        .client-item { background: rgba(3,5,8,0.7); border: 1px solid rgba(0,255,204,0.1); border-radius: 6px; padding: 10px; margin-bottom: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .client-item.active { border-color: #00ffcc; background: rgba(0,255,204,0.08); }
+        .client-uid { font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 11.5px; color: #fff; }
+        .client-meta { font-size: 10px; color: #8892b0; margin-top: 2px; font-family: 'Share Tech Mono'; }
+
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .stat-box { background: #0b131d; border: 1px solid rgba(0,255,204,0.15); border-radius: 6px; padding: 8px; text-align: center; }
+        .stat-label { font-size: 9.5px; color: #8892b0; text-transform: uppercase; }
+        .stat-val { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: bold; color: #fff; margin-top: 2px; }
+        .stat-val.green { color: #00ff66; }
+
+        /* 防误触：将特批和冻结做成低调的小号按钮，放在面板底部 */
+        .action-row { display: flex; gap: 6px; margin-top: 14px; justify-content: flex-end; border-top: 1px dashed rgba(0,255,204,0.15); padding-top: 10px; }
+        .action-btn { padding: 5px 10px; font-family: 'Orbitron', sans-serif; font-weight: bold; font-size: 9.5px; border-radius: 3px; cursor: pointer; border: none; }
+        .btn-freeze { background: rgba(255,51,102,0.08); border: 1px solid rgba(255,51,102,0.25); color: #ff3366; }
+        .btn-adjust { background: rgba(0,255,204,0.08); border: 1px solid rgba(0,255,204,0.25); color: #00ffcc; }
+    </style>
+</head>
+<body>
+    <div class="auth-gate" id="authGate">
+        <div class="auth-box">
+            <div style="font-family:'Orbitron', sans-serif; font-weight:bold; font-size:15px; color:#fff;">🛡️ 手机端客户中心门禁</div>
+            <div style="font-size:11px; color:#8892b0; margin-top:5px;">请输入管理员 Master PIN (默认: 8888)</div>
+            <input type="password" id="mgrPass" class="auth-input" placeholder="••••" value="8888">
+            <button class="auth-btn" onclick="verifyLogin()">[ 解锁进入 ]</button>
+            <div style="font-size:10px; color:#ff3366; margin-top:10px;" onclick="window.location.href='mobile_admin.html'">← 返回战情大屏</div>
+        </div>
+    </div>
+
+    <!-- 录入新客户开户弹窗 -->
+    <div class="cyber-modal" id="addClientModal">
+        <div class="cyber-modal-box">
+            <div class="modal-title">➕ 录入新客户账号</div>
+            <label style="font-size:10px; color:#8892b0; display:block; text-align:left; margin-bottom:3px;">登录账号 (Username)</label>
+            <input type="text" id="newClientUser" class="modal-input" placeholder="例如: client_viper">
+            <label style="font-size:10px; color:#8892b0; display:block; text-align:left; margin-bottom:3px;">登录密码 (Password)</label>
+            <input type="text" id="newClientPass" class="modal-input" placeholder="例如: pass_8820">
+            <div class="modal-actions">
+                <button class="modal-btn btn-confirm" onclick="confirmAddClient()">[ 确认开通 ]</button>
+                <button class="modal-btn btn-cancel" onclick="closeAddClientModal()">[ 取消 ]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统一高档确认/提示模态框 (绝对带有确认与取消键) -->
+    <div class="cyber-modal" id="actionConfirmModal">
+        <div class="cyber-modal-box">
+            <div class="modal-title" id="actionTitle" style="color: #ff3366;">SYSTEM ALERT</div>
+            <div id="actionMsg" style="font-size: 11.5px; color: #fff; margin: 10px 0; line-height: 1.4;">提示内容</div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-confirm" id="modalConfirmBtn">[ 确认执行 ]</button>
+                <button class="modal-btn btn-cancel" onclick="closeActionModal()">[ 取消 ]</button>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo">V.V. CRM // <span style="color:#00ff66">审计中心</span></div>
+        <button class="back-btn" onclick="window.location.href='mobile_admin.html'">⬅ 返回大屏</button>
+    </header>
+    
+    <main>
+        <!-- 客户名录与增删工具 -->
+        <div class="cyber-card">
+            <div class="card-title">
+                <span>Client Directory</span>
+                <span style="font-size:10px; color:#00ff66;" id="clientCount">共 3 位</span>
+            </div>
+            
+            <div class="mgmt-toolbar">
+                <button class="tool-btn" onclick="openAddClientModal()">[ ＋ 录入客户 ]</button>
+                <button class="tool-btn danger" onclick="promptRemoveClient()">[ － 注销客户 ]</button>
+            </div>
+
+            <input type="text" class="search-box" placeholder="🔍 搜索 UID / 账号..." oninput="filterClients(this.value)">
+            
+            <div id="clientListContainer">
+                <div class="client-item active" onclick="loadClient('8849', 'client_jason', '$248,500', '+$34,200', '$12,500', '0x42f89c...91a')">
+                    <div>
+                        <span class="client-uid">UID #8849 [账号: client_jason]</span>
+                        <span class="client-meta">0x42f89c...91a</span>
+                    </div>
+                    <span style="color:#00ff66; font-size:10px;">🟢 正常</span>
+                </div>
+                <div class="client-item" onclick="loadClient('1024', 'client_alex', '$112,000', '+$42,100', '$5,000', '0x71c88e...88e')">
+                    <div>
+                        <span class="client-uid">UID #1024 [账号: client_alex]</span>
+                        <span class="client-meta">0x71c88e...88e</span>
+                    </div>
+                    <span style="color:#00ff66; font-size:10px;">🟢 正常</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 选中客户详情面板 -->
+        <div class="cyber-card">
+            <div class="card-title">
+                <span id="detailTitle">Client Profile // UID #8849</span>
+                <span style="font-size:10px; color:#ffcc00;" id="statusTag">🟢 合规</span>
+            </div>
+            
+            <div class="detail-grid">
+                <div class="stat-box">
+                    <div class="stat-label">当前净资产</div>
+                    <div class="stat-val" id="detNet">$248,500</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">本月盈亏</div>
+                    <div class="stat-val green" id="detPnl">+$34,200</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">本月提现</div>
+                    <div class="stat-val" id="detWith" style="color:#ffcc00;">$12,500</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">硬上限</div>
+                    <div class="stat-val">25.0 USDC</div>
+                </div>
+            </div>
+
+            <div style="background:#0b131d; border:1px solid rgba(0,255,204,0.15); border-radius:6px; padding:10px; font-size:10.5px; color:#8892b0; line-height:1.5;">
+                <p>登录账号: <span style="color:#00ffcc;" id="detAcc">client_jason</span></p>
+                <p>绑定钱包: <span style="font-family:'Share Tech Mono'; color:#00ffcc;" id="detWallet">0x42f89c45e...91a</span></p>
+            </div>
+
+            <!-- 防误触：将特批和冻结做成低调的小号按钮，放在底部 -->
+            <div class="action-row">
+                <button class="action-btn btn-adjust" onclick="promptAdjustLimit()">⚙️ 特批额度</button>
+                <button class="action-btn btn-freeze" onclick="promptFreezeAccount()">🚨 冻结账户</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function verifyLogin() {
+            if(document.getElementById('mgrPass').value === '8888') {
+                document.getElementById('authGate').classList.add('hidden');
+            } else {
+                openActionModal("认证失败", "Master PIN 错误！", null);
+            }
+        }
+
+        let currentUid = '8849';
+
+        function loadClient(uid, acc, net, pnl, witht, wallet) {
+            currentUid = uid;
+            document.querySelectorAll('.client-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            document.getElementById('detailTitle').innerText = `Client Profile // UID #${uid}`;
+            document.getElementById('detNet').innerText = net;
+            document.getElementById('detPnl').innerText = pnl;
+            document.getElementById('detWith').innerText = witht;
+            document.getElementById('detAcc').innerText = acc;
+            document.getElementById('detWallet').innerText = wallet;
+        }
+
+        function openAddClientModal() {
+            document.getElementById('newClientUser').value = '';
+            document.getElementById('newClientPass').value = '';
+            document.getElementById('addClientModal').classList.add('active');
+        }
+        function closeAddClientModal() {
+            document.getElementById('addClientModal').classList.remove('active');
+        }
+
+        function confirmAddClient() {
+            const username = document.getElementById('newClientUser').value.trim();
+            if(!username) {
+                openActionModal("输入错误", "请输入登录账号！", null);
+                return;
+            }
+            const newUid = Math.floor(1000 + Math.random() * 9000);
+            const container = document.getElementById('clientListContainer');
+            
+            const newItem = document.createElement('div');
+            newItem.className = 'client-item';
+            newItem.onclick = function() { loadClient(newUid, username, '$0.00', '+$0.00', '$0.00', '等待 API 鉴权自动同步'); };
+            newItem.innerHTML = `
+                <div>
+                    <span class="client-uid">UID #${newUid} [账号: ${username}]</span>
+                    <span class="client-meta">待 API 鉴权绑定</span>
+                </div>
+                <span style="color:#ffcc00; font-size:10px;">⏳ 待鉴权</span>
+            `;
+            container.prepend(newItem);
+            closeAddClientModal();
+            openActionModal("开户成功", `已成功手动录入客户账号：${username} (分配 UID: #${newUid})`, null);
+        }
+
+        // 高档模态弹窗控制器
+        function openActionModal(title, msg, onConfirmCallback) {
+            document.getElementById('actionTitle').innerText = title;
+            document.getElementById('actionMsg').innerText = msg;
+            const confirmBtn = document.getElementById('modalConfirmBtn');
+            
+            if(onConfirmCallback) {
+                confirmBtn.style.display = 'block';
+                confirmBtn.onclick = function() {
+                    onConfirmCallback();
+                    closeActionModal();
+                };
+            } else {
+                confirmBtn.style.display = 'block';
+                confirmBtn.onclick = closeActionModal;
+            }
+            document.getElementById('actionConfirmModal').classList.add('active');
+        }
+        function closeActionModal() {
+            document.getElementById('actionConfirmModal').classList.remove('active');
+        }
+
+        function promptAdjustLimit() {
+            openActionModal(
+                "⚙️ 风控额度特批", 
+                `确认要为 UID #${currentUid} 调高单笔硬上限吗？`, 
+                function() {
+                    openActionModal("特批成功", `已成功为 UID #${currentUid} 调高至 100 USDC！`, null);
+                }
+            );
+        }
+
+        function promptFreezeAccount() {
+            openActionModal(
+                "🚨 账户冻结确认", 
+                `确定要对 UID #${currentUid} 执行【冻结账户】吗？`, 
+                function() {
+                    openActionModal("执行成功", `UID #${currentUid} 已被系统底层强制冻结！`, null);
+                    document.getElementById('statusTag').innerText = '⚠️ 已冻结';
+                }
+            );
+        }
+
+        function promptRemoveClient() {
+            openActionModal(
+                "🗑️ 注销客户确认", 
+                `确认要永久注销 UID #${currentUid} 吗？`, 
+                function() {
+                    const activeEl = document.querySelector('.client-item.active');
+                    if(activeEl) {
+                        activeEl.remove();
+                        openActionModal("删除成功", "客户档案已注销", null);
+                    }
+                }
+            );
+        }
+
+        function filterClients(keyword) {
+            const items = document.querySelectorAll('.client-item');
+            items.forEach(item => {
+                item.style.display = item.innerText.toLowerCase().includes(keyword.toLowerCase()) ? 'flex' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

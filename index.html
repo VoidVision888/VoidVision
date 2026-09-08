@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoidVision (V.V.) / 深空之眼 - Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', 'Share Tech Mono', 'Microsoft YaHei', sans-serif !important; letter-spacing: 0.8px; }
+        body { background-color: #030508; color: #00ffcc; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        header { height: 50px; border-bottom: 1px solid rgba(0, 255, 204, 0.15); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(3, 5, 8, 0.95); backdrop-filter: blur(10px); z-index: 50; flex-shrink: 0; }
+        
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .logo-area { display: flex; align-items: center; gap: 6px; }
+        .logo { font-family: 'Orbitron', sans-serif !important; font-weight: 900; font-size: 15px; color: #fff; text-shadow: 0 0 10px #00ffcc; white-space: nowrap; }
+        .vv-tag { color: #00ff66; font-weight: bold; font-size: 12px; }
+        
+        .header-right { display: flex; align-items: center; gap: 12px; z-index: 60; }
+        .global-liquidity { font-size: 11px; color: #8892b0; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+        .global-liquidity span { font-family: 'Orbitron', monospace !important; color: #00ffcc; font-weight: 700; font-size: 12px; }
+        
+        .lang-switch-group { display: flex; gap: 3px; }
+        .lang-switch { background: rgba(0, 255, 204, 0.05); border: 1px solid rgba(0, 255, 204, 0.2); color: #8892b0; padding: 3px 6px; font-size: 9px; font-weight: bold; border-radius: 3px; cursor: pointer; font-family: 'Orbitron', sans-serif !important; }
+        .lang-switch.active { border-color: #00ffcc; color: #00ffcc; background: rgba(0, 255, 204, 0.15); }
+
+        .config-btn { background: rgba(0, 255, 204, 0.1); border: 1px solid rgba(0, 255, 204, 0.4); color: #00ffcc; padding: 5px 14px; font-size: 11px; cursor: pointer; transition: 0.3s; font-weight: bold; border-radius: 3px; }
+        .config-btn:hover { background: #00ffcc; color: #000; box-shadow: 0 0 10px #00ffcc; }
+
+        main { flex: 1; display: grid; grid-template-columns: 315px 1fr 335px; grid-gap: 10px; padding: 10px; position: relative; overflow: hidden; height: calc(100vh - 80px); }
+        
+        .cyber-card { background: rgba(8, 14, 22, 0.8); border: 1px solid rgba(0, 255, 204, 0.12); border-radius: 6px; padding: 12px 14px; backdrop-filter: blur(12px); box-shadow: inset 0 0 20px rgba(0,255,204,0.02), 0 4px 20px rgba(0, 0, 0, 0.6); display: flex; flex-direction: column; justify-content: space-between; z-index: 10; position: relative; }
+        
+        /* 标题字号微调放大 */
+        .card-title { font-family: 'Share Tech Mono', monospace !important; font-size: 11px; color: #8892b0; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+        
+        .card-center-box { flex: 1; display: flex; flex-direction: column; justify-content: center; margin: 3px 0; }
+        .card-value { font-family: 'Orbitron', sans-serif !important; font-size: 26px; font-weight: 700; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.4); white-space: nowrap; }
+        .card-value.green { color: #00ff66; text-shadow: 0 0 10px rgba(0,255,102,0.4); font-size: 26px; }
+
+        .center-stage { position: relative; display: flex; flex-direction: column; gap: 8px; height: 100%; min-width: 0; z-index: 10; }
+        .visual-canvas-box { flex: 1; position: relative; border: 1px solid rgba(0, 255, 204, 0.12); border-radius: 6px; background: radial-gradient(circle at center, #0b192c 0%, #030508 100%); overflow: hidden; display: flex; justify-content: center; align-items: center; min-height: 260px; z-index: 5; }
+        
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+
+        .consensus-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 3px; z-index: 10; position: relative; }
+        .consensus-item { background: rgba(3, 5, 8, 0.85); border: 1px solid rgba(0, 255, 204, 0.15); border-radius: 4px; padding: 7px; text-align: center; }
+        .consensus-name { font-size: 9px; color: #8892b0; margin-bottom: 2px; }
+        .consensus-val { font-family: 'Orbitron', sans-serif !important; font-size: 12px; color: #00ff66; font-weight: bold; }
+
+        .chart-tabs { display: flex; gap: 5px; margin-bottom: 5px; z-index: 15; position: relative; }
+        .chart-tab { background: rgba(3,5,8,0.7); border: 1px solid rgba(0,255,204,0.15); color: #8892b0; font-size: 9px; padding: 3px 7px; cursor: pointer; border-radius: 2px; }
+        .chart-tab.active { background: rgba(0,255,204,0.2); color: #00ffcc; border-color: rgba(0,255,204,0.5); }
+        .mini-line-chart { height: 28px; width: 100%; display: flex; align-items: flex-end; gap: 2px; padding-top: 2px; border-bottom: 1px dashed rgba(0,255,204,0.15); }
+        .line-bar { flex: 1; background: rgba(0,255,102,0.35); border-radius: 2px 2px 0 0; }
+
+        /* 右侧常驻链上回执卡片字体放大 */
+        .ledger-receipt-card { background: rgba(3, 5, 8, 0.85); border: 1px solid rgba(0, 255, 204, 0.2); border-radius: 4px; padding: 8px 10px; font-size: 11.5px; margin-top: 6px; z-index: 10; position: relative; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .receipt-hash { font-family: 'Share Tech Mono', monospace; font-size: 9px; color: #8892b0; background: rgba(0,255,204,0.05); padding: 2px 5px; border-radius: 2px; display: inline-block; margin-top: 3px; }
+
+        footer { height: 30px; border-top: 1px solid rgba(0, 255, 204, 0.15); background: rgba(3, 5, 8, 0.95); display: flex; align-items: center; padding: 0 20px; font-size: 11px; color: #00ffcc; overflow: hidden; white-space: nowrap; z-index: 10; flex-shrink: 0; }
+        .ticker-text { animation: marquee 35s linear infinite; display: inline-block; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(3px); }
+        .drawer-overlay.active { opacity: 1; visibility: visible; }
+        .config-drawer { position: fixed; top: 0; right: -420px; width: 420px; height: 100%; background: rgba(8, 15, 25, 0.98); border-left: 1px solid rgba(0,255,204,0.3); z-index: 999; transition: right 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 25px; box-shadow: -10px 0 30px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
+        .config-drawer.active { right: 0; }
+        .drawer-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 255, 204, 0.2); padding-bottom: 12px; margin-bottom: 15px; }
+        .drawer-title { font-family: 'Orbitron', sans-serif !important; font-weight: bold; font-size: 14px; color: #fff; text-shadow: 0 0 10px #00ffcc; }
+        .close-btn { color: #ff3366; cursor: pointer; font-size: 18px; font-weight: bold; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 10px; color: #8892b0; margin-bottom: 6px; display: block; text-transform: uppercase; }
+        .strategy-options { display: flex; flex-direction: column; gap: 6px; }
+        .radio-btn { padding: 9px 10px; background: rgba(3,5,8,0.8); border: 1px solid rgba(0,255,204,0.15); border-radius: 4px; color: #8892b0; cursor: pointer; font-size: 11px; display: flex; justify-content: space-between; align-items: center; }
+        .radio-btn.selected { background: rgba(0,255,204,0.1); border-color: #00ffcc; color: #00ffcc; font-weight: bold; }
+        .input-limit { width: 100%; padding: 10px; background: rgba(3,5,8,0.8); border: 1px solid rgba(0,255,204,0.15); color: #00ffcc; font-size: 14px; font-family: 'Orbitron', sans-serif !important; outline: none; border-radius: 4px; }
+        
+        .drawer-footer-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+        .sync-btn { background: rgba(0, 255, 204, 0.12); border: 1px solid rgba(0,255,204,0.4); color: #00ffcc; padding: 11px; font-family: 'Orbitron', sans-serif !important; font-weight: bold; cursor: pointer; text-align: center; border-radius: 4px; }
+        .kill-switch-btn { background: rgba(255, 51, 102, 0.15); border: 1px solid #ff3366; color: #ff3366; padding: 11px; font-family: 'Orbitron', sans-serif !important; font-weight: bold; cursor: pointer; text-align: center; border-radius: 4px; transition: 0.3s; }
+        .kill-switch-btn:hover { background: #ff3366; color: #fff; box-shadow: 0 0 15px #ff3366; }
+
+        .highlight-value { font-family: 'Orbitron', monospace !important; font-size: 13px; font-weight: bold; color: #00ffcc; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <div class="logo-area">
+                <div class="logo">VOIDVISION <span class="vv-tag">(V.V.)</span> // <span id="txt-title">客户终端</span></div>
+            </div>
+            <div class="lang-switch-group">
+                <button class="lang-switch active" id="btn-zh" onclick="setLang('zh')">中文</button>
+                <button class="lang-switch" id="btn-en" onclick="setLang('en')">EN</button>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="global-liquidity">
+                <span id="txt-pool">POLYMARKET 体育全网流动性池</span>: <span id="pool-liquidity">$48,291,504</span>
+            </div>
+            <button class="config-btn" onclick="toggleDrawer()">[ CONFIG ]</button>
+        </div>
+    </header>
+    
+    <main>
+        <!-- 左侧列：内部正文及状态参数字号放大到 11.5px -->
+        <div style="display: flex; flex-direction: column; gap: 8px; height: 100%;">
+            <div class="cyber-card" style="flex: 1.2;">
+                <div>
+                    <div class="card-title" id="lbl-networth">Client Net Worth (个人净资产)</div>
+                </div>
+                <div class="card-center-box">
+                    <div class="card-value" id="client-balance">$1,482.50</div>
+                </div>
+                <div style="font-size: 11px; color: #00ff66;" id="lbl-sync">▲ 链上资产实时对齐 (Cloud Synced)</div>
+            </div>
+
+            <div class="cyber-card" style="flex: 1.8;">
+                <div class="card-title" id="lbl-pnl">Performance PNL (盈亏可视化)</div>
+                <div class="chart-tabs">
+                    <div class="chart-tab active" id="tab-day" onclick="switchChart('day', this)">日 (Day)</div>
+                    <div class="chart-tab" id="tab-month" onclick="switchChart('month', this)">月 (Month)</div>
+                    <div class="chart-tab" id="tab-year" onclick="switchChart('year', this)">年 (Year)</div>
+                </div>
+                <div class="card-center-box">
+                    <div class="card-value green" id="pnl-amount">+$248.60 <span style="font-size:12px; font-weight:normal; color:#00ff66;">(+20.1%)</span></div>
+                </div>
+                <div class="mini-line-chart" id="chartBars">
+                    <div class="line-bar" style="height: 30%;"></div>
+                    <div class="line-bar" style="height: 45%;"></div>
+                    <div class="line-bar" style="height: 40%;"></div>
+                    <div class="line-bar" style="height: 65%;"></div>
+                    <div class="line-bar" style="height: 55%;"></div>
+                    <div class="line-bar" style="height: 80%;"></div>
+                    <div class="line-bar" style="height: 100%;"></div>
+                </div>
+            </div>
+
+            <div class="cyber-card" style="flex: 1.4;">
+                <div class="card-title" id="lbl-risk">Strategy & Risk Control (运行状态)</div>
+                <div style="font-size: 11.5px; color: #8892b0; line-height: 1.5;" id="mode-container">
+                    <p><span id="txt-mode-label">策略模式</span>: <span class="highlight-value" id="display-mode">平衡 (Balanced)</span></p>
+                    <p><span id="txt-limit-label">单笔上限</span>: <span class="highlight-value" id="display-limit">25.0</span> USDC | 熔断: 15.0%</p>
+                    <p style="color: #00ff66; margin-top: 2px;">● <span id="txt-latency-label">延迟</span>: <span id="latency">18</span>ms (Madrid-01)</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 中间列 -->
+        <div class="center-stage">
+            <div class="visual-canvas-box">
+                <canvas id="cyberCanvas"></canvas>
+            </div>
+            <div class="cyber-card" style="flex-shrink: 0; padding: 10px 14px;">
+                <div class="card-title" id="lbl-consensus">Multi-Strategy Consensus Panel (多策略概率共振)</div>
+                <div class="consensus-grid">
+                    <div class="consensus-item">
+                        <div class="consensus-name" id="c-name1">赔率均值回归</div>
+                        <div class="consensus-val" style="font-size: 12px;">91.4%</div>
+                    </div>
+                    <div class="consensus-item">
+                        <div class="consensus-name" id="c-name2">进球概率动量</div>
+                        <div class="consensus-val" style="color:#00ffcc; font-size: 12px;">88.7%</div>
+                    </div>
+                    <div class="consensus-item">
+                        <div class="consensus-name" id="c-name3">盘口流动性深度</div>
+                        <div class="consensus-val" style="color:#ffcc00; font-size: 12px;">94.2%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧列：狙击流、赛事雷达、链上回执字体同步放大到 11.5px -->
+        <div style="display: flex; flex-direction: column; gap: 8px; height: 100%;">
+            <div class="cyber-card" style="flex: 1.1;">
+                <div class="card-title" id="lbl-stream">Live Target Stream (实时高频狙击)</div>
+                <div style="font-size: 11.5px; color: #fff; line-height: 1.5; margin-top: 2px;">
+                    <p style="color: #00ffcc; font-weight:bold;">[07:49] T1 vs GEN.G (Esports)</p>
+                    <p style="color: #8892b0;"><span id="t-strat">策略</span>: Map 2 Winner | <span id="t-edge">优势差</span>: +3.1%</p>
+                    <p style="color: #00ff66;"><span id="t-status">状态</span>: 链上订单已成交 (Filled)</p>
+                </div>
+            </div>
+
+            <div class="cyber-card" style="flex: 1.4;">
+                <div class="card-title" id="lbl-radar">Omniverse Edge Radar (全品类赛事雷达)</div>
+                <div style="font-size: 11.5px; color: #8892b0; line-height: 1.4; margin-top: 2px;">
+                    <div style="display:flex; justify-content:space-between; color:#fff;"><span>⚽ 足球: Man City vs Liverpool</span><span style="color:#00ff66;">Under (89%)</span></div>
+                    <div style="display:flex; justify-content:space-between; color:#8892b0;"><span>🏀 NBA: LAL vs BOS</span><span style="color:#00ffcc;">Edge (82%)</span></div>
+                    <div style="display:flex; justify-content:space-between; color:#8892b0;"><span>🎮 电竞: T1 vs GEN.G</span><span style="color:#ffcc00;">Snipe (94%)</span></div>
+                    <div style="display:flex; justify-content:space-between; color:#8892b0;"><span>🎾 网球: Djokovic vs Alcaraz</span><span style="color:#00ffcc;">Set 2 (78%)</span></div>
+                </div>
+            </div>
+
+            <div class="cyber-card" style="flex: 1.9; overflow-y: auto;">
+                <div class="card-title" id="led-title">EXECUTION LEDGER // 链上回执</div>
+                <div style="font-size: 10px; color: #8892b0; margin-bottom: 4px;" id="led-desc">* 智能合约清算凭证与哈希</div>
+                
+                <div class="ledger-receipt-card">
+                    <div class="receipt-row"><span style="color:#fff; font-weight:bold;">Arsenal vs Chelsea (⚽)</span><span style="color:#00ff66;">WIN (+$22.5)</span></div>
+                    <div class="receipt-row" style="color: #8892b0;"><span class="t-amt">成交</span>: $1,000 | <span class="t-payout">回款</span>: $1,022.5</div>
+                    <div class="receipt-hash">TxHash: 0x9f8c...3b21</div>
+                </div>
+
+                <div class="ledger-receipt-card">
+                    <div class="receipt-row"><span style="color:#fff; font-weight:bold;">T1 vs GEN.G (🎮)</span><span style="color:#00ff66;">WIN (+$35.0)</span></div>
+                    <div class="receipt-row" style="color: #8892b0;"><span class="t-amt">成交</span>: $800 | <span class="t-payout">回款</span>: $835.0</div>
+                    <div class="receipt-hash">TxHash: 0x4a2e...7d19</div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <footer>
+        <div class="ticker-text" id="footer-notice">
+            SYSTEM NOTICE: VoidVision (V.V.) Client Terminal Online. [Protocol Notice: Smart contract routes embedded with 0.1% Routing Fee & 0.25% Success Share] --- [Event ID #8849: Real-time Edge Detected] --- All Systems Synchronized.
+        </div>
+    </footer>
+
+    <div class="drawer-overlay" id="overlay" onclick="closeAllDrawers()"></div>
+
+    <div class="config-drawer" id="drawer">
+        <div class="drawer-header">
+            <div class="drawer-title" id="cfg-title">SYSTEM CONFIG // 系统设置</div>
+            <div class="close-btn" onclick="toggleDrawer()">×</div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" id="cfg-lbl-strat">Algorithm Aggressiveness (策略模式)</label>
+            <div class="strategy-options">
+                <div class="radio-btn" onclick="selectStrategy(this, '保守 (Conservative)')">
+                    <span>Conservative (保守)</span> <span style="font-size:10px; color:#ff3366;" id="s-cons">低频高胜</span>
+                </div>
+                <div class="radio-btn selected" onclick="selectStrategy(this, '平衡 (Balanced)')">
+                    <span>Balanced (动态平衡)</span> <span style="font-size:10px; color:#00ff66;" id="s-bal">系统默认</span>
+                </div>
+                <div class="radio-btn" onclick="selectStrategy(this, '激进 (Aggressive)')">
+                    <span>Aggressive (激进)</span> <span style="font-size:10px; color:#ffcc00;" id="s-aggr">高频滚仓</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" id="cfg-lbl-limit">Max Order Limit (单笔资金硬上限 / USDC)</label>
+            <input type="number" id="inputLimit" class="input-limit" value="25.0" min="1" step="1">
+            <div style="font-size: 9px; color: #8892b0; margin-top: 4px;" id="cfg-limit-note">* 最低执行限额: 5.0 USDC (< 5 自动纠偏)</div>
+        </div>
+        
+        <div class="drawer-footer-actions">
+            <div class="kill-switch-btn" onclick="triggerEmergencyKill()">[ ⚠️ EMERGENCY KILL SWITCH ]</div>
+            <div class="sync-btn" id="syncBtn" onclick="syncData()">[ SYNC TO CLOUD ]</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('cyberCanvas');
+        const ctx = canvas.getContext('2d');
+        function resize() { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; }
+        window.addEventListener('resize', resize); resize();
+        const particles = [];
+        for(let i=0; i<75; i++) { particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.7, vy: (Math.random() - 0.5) * 0.7, radius: Math.random() * 2 + 1 }); }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ffcc'; ctx.strokeStyle = 'rgba(0, 255, 204, 0.15)'; ctx.lineWidth = 1;
+            for(let i=0; i<particles.length; i++) {
+                let p = particles[i]; p.x += p.vx; p.y += p.vy;
+                if(p.x < 0 || p.x > canvas.width) p.vx *= -1; if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+                for(let j=i+1; j<particles.length; j++) {
+                    let p2 = particles[j]; let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                    if(dist < 110) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
+                }
+            } requestAnimationFrame(animate);
+        } animate();
+        
+        setInterval(() => { 
+            const poolEl = document.getElementById('pool-liquidity');
+            if(poolEl) {
+                poolEl.innerText = '$' + (48291504 + Math.floor(Math.random() * 2000 - 900)).toLocaleString(); 
+            }
+        }, 3000);
+
+        function switchChart(period, el) {
+            document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            const amt = document.getElementById('pnl-amount');
+            const bars = document.getElementById('chartBars');
+            if(period === 'day') {
+                amt.innerHTML = "+$248.60 <span style='font-size:12px; font-weight:normal; color:#00ff66;'>(+20.1%)</span>";
+                bars.innerHTML = '<div class="line-bar" style="height:30%;"></div><div class="line-bar" style="height:45%;"></div><div class="line-bar" style="height:40%;"></div><div class="line-bar" style="height:65%;"></div><div class="line-bar" style="height:55%;"></div><div class="line-bar" style="height:80%;"></div><div class="line-bar" style="height:100%;"></div>';
+            } else if(period === 'month') {
+                amt.innerHTML = "+$3,420.50 <span style='font-size:12px; font-weight:normal; color:#00ff66;'>(+45.8%)</span>";
+                bars.innerHTML = '<div class="line-bar" style="height:50%;"></div><div class="line-bar" style="height:60%;"></div><div class="line-bar" style="height:35%;"></div><div class="line-bar" style="height:75%;"></div><div class="line-bar" style="height:90%;"></div><div class="line-bar" style="height:85%;"></div><div class="line-bar" style="height:100%;"></div>';
+            } else {
+                amt.innerHTML = "+$18,940.00 <span style='font-size:12px; font-weight:normal; color:#00ff66;'>(+184.2%)</span>";
+                bars.innerHTML = '<div class="line-bar" style="height:20%;"></div><div class="line-bar" style="height:40%;"></div><div class="line-bar" style="height:55%;"></div><div class="line-bar" style="height:70%;"></div><div class="line-bar" style="height:85%;"></div><div class="line-bar" style="height:95%;"></div><div class="line-bar" style="height:100%;"></div>';
+            }
+        }
+
+        function triggerEmergencyKill() {
+            if(confirm("⚠️ WARNING: Execute Emergency Kill Switch? All active orders will be cancelled immediately!")) {
+                alert("⚡ EMERGENCY KILL SWITCH TRIGGERED: All active strategies paused & orders cancelled.");
+                toggleDrawer();
+            }
+        }
+
+        const i18n = {
+            zh: {
+                title: "客户终端", pool: "POLYMARKET 体育全网流动性池",
+                networth: "Client Net Worth (个人净资产)", sync: "▲ 链上资产实时对齐 (Cloud Synced)",
+                pnl: "Performance PNL (盈亏可视化)", risk: "Strategy & Risk Control (运行状态)",
+                mlabel: "策略模式", llabel: "单笔上限", latency: "延迟",
+                radar: "Omniverse Edge Radar (全品类赛事雷达)",
+                consensus: "Multi-Strategy Consensus Panel (多策略概率共振)",
+                c1: "赔率均值回归", c2: "进球概率动量", c3: "盘口流动性深度",
+                stream: "Live Target Stream (实时高频狙击)",
+                strat: "策略", edge: "优势差", status: "状态",
+                ledtitle: "EXECUTION LEDGER // 链上回执", ledDesc: "* 智能合约清算凭证与哈希",
+                amt: "成交", payout: "回款",
+                cfgtitle: "SYSTEM CONFIG // 系统设置", cfglblstrat: "Algorithm Aggressiveness (策略模式)",
+                cons: "低频高胜", bal: "系统默认", aggr: "高频滚仓",
+                cfgbllimit: "Max Order Limit (单笔资金硬上限 / USDC)",
+                cfgnote: "* 最低执行限额: 5.0 USDC (< 5 自动纠偏)"
+            },
+            en: {
+                title: "Client Terminal", pool: "POLYMARKET Global Sports Liquidity",
+                networth: "Client Net Worth", sync: "▲ On-Chain Assets Synced",
+                pnl: "Performance PNL Visualization", risk: "Strategy & Risk Control",
+                mlabel: "Strategy Mode", llabel: "Max Limit", latency: "Latency",
+                radar: "Omniverse Edge Radar (Multi-Sport)",
+                consensus: "Multi-Strategy Consensus Panel",
+                c1: "Odds Mean Reversion", c2: "Goal Momentum", c3: "Liquidity Depth",
+                stream: "Live Target Stream",
+                strat: "Strategy", edge: "Edge", status: "Status",
+                ledtitle: "EXECUTION LEDGER // Receipts", ledDesc: "* Smart contract verification",
+                amt: "Stake", payout: "Payout",
+                cfgtitle: "SYSTEM CONFIG // Settings", cfglblstrat: "Algorithm Aggressiveness",
+                cons: "Low Freq / High Win", bal: "System Default", aggr: "High Freq Scalping",
+                cfgbllimit: "Max Order Limit / USDC",
+                cfgnote: "* Min limit: 5.0 USDC (< 5 auto-corrected)"
+            }
+        };
+
+        function setLang(lang) {
+            document.getElementById('btn-zh').classList.toggle('active', lang === 'zh');
+            document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+            const d = i18n[lang];
+            document.getElementById('txt-title').innerText = d.title;
+            document.getElementById('txt-pool').innerText = d.pool;
+            document.getElementById('lbl-networth').innerText = d.networth;
+            document.getElementById('lbl-sync').innerText = d.sync;
+            document.getElementById('lbl-pnl').innerText = d.pnl;
+            document.getElementById('lbl-risk').innerText = d.risk;
+            document.getElementById('txt-mode-label').innerText = d.mlabel;
+            document.getElementById('txt-limit-label').innerText = d.llabel;
+            document.getElementById('txt-latency-label').innerText = d.latency;
+            document.getElementById('lbl-radar').innerText = d.radar;
+            document.getElementById('lbl-consensus').innerText = d.consensus;
+            document.getElementById('c-name1').innerText = d.c1;
+            document.getElementById('c-name2').innerText = d.c2;
+            document.getElementById('c-name3').innerText = d.c3;
+            document.getElementById('lbl-stream').innerText = d.stream;
+            document.getElementById('t-strat').innerText = d.strat;
+            document.getElementById('t-edge').innerText = d.edge;
+            document.getElementById('t-status').innerText = d.status;
+            document.getElementById('led-title').innerText = d.ledtitle;
+            document.getElementById('cfg-title').innerText = d.cfgtitle;
+            document.getElementById('cfg-lbl-strat').innerText = d.cfglblstrat;
+            document.getElementById('s-cons').innerText = d.cons;
+            document.getElementById('s-bal').innerText = d.bal;
+            document.getElementById('s-aggr').innerText = d.aggr;
+            document.getElementById('cfg-lbl-limit').innerText = d.cfgbllimit;
+            document.getElementById('cfg-limit-note').innerText = d.cfgnote;
+        }
+
+        let selectedStrategyStr = '平衡 (Balanced)';
+        function toggleDrawer() { 
+            document.getElementById('drawer').classList.toggle('active'); 
+            document.getElementById('overlay').classList.toggle('active'); 
+        }
+        function closeAllDrawers() {
+            document.getElementById('drawer').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+        function selectStrategy(element, name) {
+            document.querySelectorAll('.radio-btn').forEach(b => b.classList.remove('selected'));
+            element.classList.add('selected'); selectedStrategyStr = name;
+        }
+
+        function syncData() {
+            const btn = document.getElementById('syncBtn');
+            const limitInput = document.getElementById('inputLimit');
+            let limitValue = parseFloat(limitInput.value);
+
+            if (isNaN(limitValue) || limitValue < 5) {
+                limitValue = 5.0; limitInput.value = "5.0";
+                btn.innerText = "[ ⚠️ AUTO-FIXED TO 5.0 ]";
+                btn.style.color = "#ff3366"; btn.style.borderColor = "#ff3366";
+                setTimeout(() => { btn.innerText = "[ SYNC TO CLOUD ]"; btn.style.color = "#00ffcc"; btn.style.borderColor = "#00ffcc"; }, 2000);
+                return;
+            }
+
+            btn.innerText = "[ SYNCING TO V.V. CLOUD... ]";
+            btn.style.color = "#00ff66"; btn.style.borderColor = "#00ff66";
+            
+            setTimeout(() => {
+                document.getElementById('display-mode').innerText = selectedStrategyStr;
+                document.getElementById('display-limit').innerText = limitValue.toFixed(1);
+                const syncPayload = { mode: selectedStrategyStr, limit: limitValue.toFixed(1), timestamp: Date.now() };
+                localStorage.setItem('vv_terminal_state', JSON.stringify(syncPayload));
+                btn.innerText = "[ SYNC TO CLOUD ]";
+                btn.style.color = "#00ffcc"; btn.style.borderColor = "#00ffcc";
+                closeAllDrawers();
+            }, 1000);
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'vv_terminal_state') {
+                const data = JSON.parse(e.newValue);
+                if(data) {
+                    document.getElementById('display-mode').innerText = data.mode;
+                    document.getElementById('display-limit').innerText = data.limit;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoidVision Admin (V.V.A.) // 全球量化指挥中心</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', 'Share Tech Mono', 'Microsoft YaHei', sans-serif !important; letter-spacing: 0.8px; }
+        body { background-color: #0b131d; color: #00ffcc; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        header { height: 52px; border-bottom: 1px solid rgba(0, 255, 204, 0.2); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; background: rgba(11, 19, 29, 0.95); backdrop-filter: blur(10px); z-index: 50; flex-shrink: 0; }
+        
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .logo { font-family: 'Orbitron', sans-serif !important; font-weight: 900; font-size: 16px; color: #fff; text-shadow: 0 0 10px #00ffcc; white-space: nowrap; }
+        .admin-tag { color: #00ff66; font-weight: bold; font-size: 11px; background: rgba(0,255,102,0.1); padding: 2px 8px; border-radius: 3px; border: 1px solid rgba(0,255,102,0.3); }
+        
+        .header-right { display: flex; align-items: center; gap: 15px; z-index: 60; }
+        .global-liquidity { font-size: 12px; color: #8892b0; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
+        .global-liquidity span { font-family: 'Orbitron', monospace !important; color: #00ffcc; font-weight: 700; font-size: 13px; }
+        
+        .lang-switch-group { display: flex; gap: 3px; }
+        .lang-switch { background: rgba(0, 255, 204, 0.05); border: 1px solid rgba(0, 255, 204, 0.2); color: #8892b0; padding: 3px 8px; font-size: 10px; font-weight: bold; border-radius: 3px; cursor: pointer; font-family: 'Orbitron', sans-serif !important; }
+        .lang-switch.active { border-color: #00ffcc; color: #00ffcc; background: rgba(0, 255, 204, 0.2); }
+
+        main { flex: 1; display: grid; grid-template-columns: 320px 1fr 340px; grid-gap: 10px; padding: 10px; position: relative; overflow: hidden; height: calc(100vh - 82px); }
+        
+        .cyber-card { background: #111a28; border: 1px solid rgba(0, 255, 204, 0.15); border-radius: 8px; padding: 12px 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: space-between; z-index: 10; position: relative; }
+        
+        .card-title { font-family: 'Orbitron', sans-serif !important; font-size: 11.5px; font-weight: 700; color: #00ffcc; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 1px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,255,204,0.1); padding-bottom: 4px; }
+        
+        .card-value { font-family: 'Orbitron', sans-serif !important; font-size: 22px; font-weight: 700; color: #fff; text-shadow: 0 0 8px rgba(255,255,255,0.4); white-space: nowrap; }
+        .card-value.green { color: #00ff66; text-shadow: 0 0 8px rgba(0,255,102,0.4); }
+
+        .admin-tabs { display: flex; gap: 4px; }
+        .admin-tab { background: rgba(11,19,29,0.9); border: 1px solid rgba(0,255,204,0.2); color: #8892b0; font-size: 9px; padding: 2px 8px; cursor: pointer; border-radius: 3px; font-family: 'Orbitron', sans-serif !important; }
+        .admin-tab.active { background: rgba(0,255,204,0.25); color: #00ffcc; border-color: #00ffcc; font-weight: bold; }
+
+        .client-portal-card { background: linear-gradient(135deg, rgba(0,255,204,0.1) 0%, rgba(17,26,40,1) 100%); border: 1px solid rgba(0,255,204,0.4); border-radius: 8px; padding: 12px 14px; cursor: pointer; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 0 15px rgba(0,255,204,0.1); }
+        .client-portal-card:hover { border-color: #00ffcc; box-shadow: 0 0 20px rgba(0,255,204,0.3); }
+
+        .rank-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 4px 0; border-bottom: 1px dashed rgba(0,255,204,0.15); }
+
+        .master-kill-btn { background: rgba(255, 51, 102, 0.15); border: 1px solid #ff3366; color: #ff3366; padding: 11px; font-family: 'Orbitron', sans-serif !important; font-weight: bold; font-size: 12px; cursor: pointer; text-align: center; border-radius: 6px; transition: 0.3s; }
+        .master-kill-btn:hover { background: #ff3366; color: #fff; box-shadow: 0 0 20px #ff3366; }
+
+        footer { height: 30px; border-top: 1px solid rgba(0, 255, 204, 0.2); background: rgba(11, 19, 29, 0.95); display: flex; align-items: center; padding: 0 20px; font-size: 11px; color: #00ffcc; overflow: hidden; white-space: nowrap; z-index: 10; flex-shrink: 0; }
+        .ticker-text { animation: marquee 35s linear infinite; display: inline-block; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        .highlight-val { font-family: 'Orbitron', monospace !important; color: #00ffcc; font-weight: bold; }
+
+        .sec-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 5, 8, 0.85); z-index: 999; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .sec-modal.active { display: flex; }
+        .sec-box { background: #111a28; border: 1px solid #00ffcc; border-radius: 10px; padding: 25px; width: 360px; box-shadow: 0 0 30px rgba(0,255,204,0.3); text-align: center; }
+        .sec-input { width: 100%; padding: 10px; background: #0b131d; border: 1px solid rgba(0,255,204,0.4); color: #00ffcc; font-size: 16px; font-family: 'Orbitron', sans-serif !important; text-align: center; border-radius: 5px; margin: 15px 0; outline: none; }
+        .sec-btn { background: rgba(0,255,204,0.2); border: 1px solid #00ffcc; color: #00ffcc; padding: 10px; font-family: 'Orbitron', sans-serif; font-weight: bold; width: 100%; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        .sec-btn:hover { background: #00ffcc; color: #000; box-shadow: 0 0 10px #00ffcc; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <div class="logo">VOIDVISION ADMIN <span class="admin-tag">V.V.A. // 战情指挥中心</span></div>
+        </div>
+        <div class="header-right">
+            <div class="global-liquidity">
+                <span id="txt-pool">全网托管总资产 (AUM)</span>: <span id="admin-aum">$14,829,504</span>
+            </div>
+            <div class="lang-switch-group">
+                <button class="lang-switch active" id="btn-zh" onclick="setLang('zh')">中文</button>
+                <button class="lang-switch" id="btn-en" onclick="setLang('en')">EN</button>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <!-- 左侧列 -->
+        <div style="display: flex; flex-direction: column; gap: 8px; height: 100%;">
+            
+            <!-- 全网分成营收 -->
+            <div class="cyber-card" style="flex: 1.5;">
+                <div class="card-title">
+                    <span id="adm-l1">Global Revenue (全网分成营收)</span>
+                    <div class="admin-tabs">
+                        <div class="admin-tab active" onclick="switchRev('day', this)">日</div>
+                        <div class="admin-tab" onclick="switchRev('month', this)">月</div>
+                        <div class="admin-tab" onclick="switchRev('year', this)">年</div>
+                    </div>
+                </div>
+                <div class="card-value green" id="rev-total" style="font-size: 22px;">+$18,420.50</div>
+                <div style="font-size: 11.5px; color: #8892b0; border-top: 1px dashed rgba(0,255,204,0.15); padding-top: 6px; display: flex; flex-direction: column; gap: 3px;">
+                    <div style="display: flex; justify-content: space-between;"><span>🔗 路由费收入 (0.1%):</span><span style="color:#00ffcc; font-weight:bold;" id="rev-r1">$7,368.20 (40%)</span></div>
+                    <div style="display: flex; justify-content: space-between;"><span>⚡ 盈利分成 (0.25%):</span><span style="color:#00ff66; font-weight:bold;" id="rev-r2">$11,052.30 (60%)</span></div>
+                </div>
+            </div>
+
+            <!-- 总管理资金大盘：平台托管总额数字已放大对标营收，并新增本月亏损金额 -->
+            <div class="cyber-card" style="flex: 1.5;">
+                <div class="card-title">
+                    <span>AUM Capital Pool (总管理资金大盘)</span>
+                    <span style="color:#00ffcc; cursor:pointer; font-size:9px;" onclick="alert('【资金流水审计明细】\n- 本月新增入金: +$1,420,000\n- 本月提现流出: -$310,000\n- 本月整体亏损: -$142,500\n- 最近流出账户: UID #3092 (盈利提现 $45,000)')">[ 📊 审计明细 ]</span>
+                </div>
+                <div style="font-size: 11.5px; color: #8892b0; line-height: 1.5;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px;">
+                        <span style="font-size: 11px; color:#fff;">平台托管总额:</span>
+                        <!-- 核心修改：数字放大至 22px 醒目呈现 -->
+                        <span class="card-value green" style="font-size: 22px;">$14,829,504</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;"><span>本月新增入金:</span><span style="color:#00ff66;">+$1,420,000</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>本月提现流出:</span><span style="color:#ff3366;">-$310,000</span></div>
+                    <!-- 核心新增：本月亏损金额统计 -->
+                    <div style="display:flex; justify-content:space-between;"><span>本月亏损金额:</span><span style="color:#ff3366; font-weight:bold;">-$142,500</span></div>
+                    <p style="font-size:9px; color:#ffcc00; margin-top:2px;">* 链上对齐实时同步，点击审计可查具体明细</p>
+                </div>
+            </div>
+
+            <!-- 系统节点健康度小窗口 -->
+            <div class="cyber-card" style="flex: 1.0;">
+                <div class="card-title">System Nodes (节点健康度)</div>
+                <div style="font-size: 10.5px; color: #8892b0; line-height: 1.4;">
+                    <p>Polymarket API: <span style="color:#00ff66;">ONLINE (12ms)</span> | 节点: <span style="color:#00ffcc;">#68912</span></p>
+                    <p>Polygon Node: <span style="color:#00ff66;">SYNCED</span> | 延迟: <span style="color:#00ffcc;">18ms</span></p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 中间列 -->
+        <div style="display: flex; flex-direction: column; gap: 8px; height: 100%;">
+            
+            <!-- 客户管理中心入口 (带有二级密码保护) -->
+            <div class="client-portal-card" onclick="openSecurityGate()">
+                <div>
+                    <div style="font-family:'Orbitron', sans-serif; font-weight:bold; font-size:12.5px; color:#fff;">CLIENT MANAGEMENT PORTAL // 客户管理中心</div>
+                    <div style="font-size:11px; color:#00ffcc; margin-top:2px;">已开户活跃客户: <span style="font-weight:bold; font-size:12px;">1,248</span> 位 (🔒 需二级Master PIN授权访问 ➔)</div>
+                </div>
+                <div style="font-size:20px; color:#00ffcc;">🛡️</div>
+            </div>
+
+            <!-- 客户战绩排行榜 -->
+            <div class="cyber-card" style="flex: 1.6;">
+                <div class="card-title">Client Performance Leaderboard (客户战绩排行榜)</div>
+                <div style="font-size: 11px; color: #8892b0; display: flex; flex-direction: column; gap: 5px;">
+                    <div style="display:flex; justify-content:space-between; color:#fff; border-bottom:1px solid rgba(0,255,204,0.15); padding-bottom:3px;">
+                        <span>🏆 资金规模榜首: UID #8849 ($248,500)</span><span style="color:#00ff66;">月化 +34.2%</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:#8892b0;">
+                        <span>🔥 本月月化收益率王: UID #1024</span><span style="color:#00ff66; font-weight:bold;">+68.5% (+$42,100)</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:#8892b0;">
+                        <span>⚠️ 本月最大回撤/亏损榜: UID #3092</span><span style="color:#ff3366; font-weight:bold;">-18.4% (-$14,200)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 实时成交与资金洞察 -->
+            <div class="cyber-card" style="flex: 1.5;">
+                <div class="card-title">Live Settlement & Analytics (实时成交与资金洞察)</div>
+                <div style="font-size: 11px; color: #8892b0; line-height: 1.4;">
+                    <p style="color:#fff;">● 最新成交: UID #7712 买入 <span style="color:#00ffcc;">$2,500</span> (T1 vs GEN.G 电子竞技)</p>
+                    <p style="color:#ffcc00; margin-top:3px;">▲ 资金流向异常预警: 足球板块本小时资金净流入占比达 68%（过热偏离）</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 右侧列 -->
+        <div style="display: flex; flex-direction: column; gap: 8px; height: 100%;">
+            
+            <!-- 赛事资金热力排行 -->
+            <div class="cyber-card" style="flex: 1.5;">
+                <div class="card-title">Sports Capital Flow & Risk Ranking (赛事资金热力排行)</div>
+                <div style="font-size: 11px; color: #8892b0; display: flex; flex-direction: column; gap: 4px;">
+                    <div class="rank-row"><span style="color:#fff;">1. 🎮 电竞 (Esports: T1 / GenG)</span><span style="color:#00ff66;">盈利最高 (+$41.2K)</span></div>
+                    <div class="rank-row"><span style="color:#8892b0;">2. ⚽ 足球 (Premier League)</span><span style="color:#00ffcc;">平稳运行 (+$12.5K)</span></div>
+                    <div class="rank-row"><span style="color:#8892b0;">3. 🏀 NBA (LAL vs BOS)</span><span style="color:#ff3366;">亏损最大 (-$8.4K)</span></div>
+                </div>
+            </div>
+
+            <!-- 上帝视角清算流水 -->
+            <div class="cyber-card" style="flex: 1.5; overflow-y: auto;">
+                <div class="card-title">Global Clearing Feed // 上帝视角清算流水</div>
+                <div style="background: rgba(3,5,8,0.9); border: 1px solid rgba(0,255,204,0.2); border-radius: 4px; padding: 7px; margin-top:4px; font-size:11px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span style="color:#fff; font-weight:bold;">UID #8849 ➔ Arsenal (⚽)</span><span style="color:#00ff66;">WIN (+$22.5)</span></div>
+                    <div style="font-family:'Share Tech Mono'; font-size:9px; color:#8892b0;">TxHash: 0x9f8c...3b21</div>
+                </div>
+                <div style="background: rgba(3,5,8,0.9); border: 1px solid rgba(0,255,204,0.2); border-radius: 4px; padding: 7px; margin-top:6px; font-size:11px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span style="color:#fff; font-weight:bold;">UID #1024 ➔ T1 (🎮)</span><span style="color:#00ff66;">WIN (+$35.0)</span></div>
+                    <div style="font-family:'Share Tech Mono'; font-size:9px; color:#8892b0;">TxHash: 0x4a2e...7d19</div>
+                </div>
+            </div>
+
+            <!-- 硬上限阀门 + 熔断按钮 -->
+            <div class="cyber-card" style="flex: 1.1; padding: 10px 12px;">
+                <div class="card-title">Global Risk Valve (硬上限阀门)</div>
+                <div style="font-size: 11px; color: #8892b0; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span>默认硬上限: <span class="highlight-val">25 USDC</span></span>
+                    <span style="color:#00ff66;">状态: 正常</span>
+                </div>
+                <div class="master-kill-btn" onclick="triggerMasterKillSwitch()">
+                    [ 🚨 MASTER EMERGENCY KILL SWITCH ]
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 第二重身份验证安全弹窗 (Master PIN Gate) -->
+    <div class="sec-modal" id="securityModal">
+        <div class="sec-box">
+            <div style="font-family:'Orbitron', sans-serif; font-weight:bold; font-size:15px; color:#fff;">🔒 SECURE ACCESS GATE</div>
+            <div style="font-size:11px; color:#8892b0; margin-top:5px;">请输入管理员二级授权密钥 (Master PIN)</div>
+            <input type="password" id="masterPinInput" class="sec-input" placeholder="••••" maxlength="6">
+            <button class="sec-btn" onclick="verifyMasterPin()">[ 确认解锁客户管理中心 ]</button>
+            <div style="font-size:9px; color:#ff3366; cursor:pointer; margin-top:10px;" onclick="closeSecurityGate()">取消返回</div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="ticker-text" id="admin-notice">
+            WAR ROOM V.V.A. SECURE FEED: All global quant nodes operational. [Secondary PIN Gate Active] --- [Client Vault Protected] --- System Synchronized.
+        </div>
+    </footer>
+
+    <script>
+        function switchRev(period, el) {
+            document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            const total = document.getElementById('rev-total');
+            const r1 = document.getElementById('rev-r1');
+            const r2 = document.getElementById('rev-r2');
+            
+            if(period === 'day') {
+                total.innerText = "+$18,420.50";
+                r1.innerText = "$7,368.20 (40%)";
+                r2.innerText = "$11,052.30 (60%)";
+            } else if(period === 'month') {
+                total.innerText = "+$284,500.00";
+                r1.innerText = "$113,800.00 (40%)";
+                r2.innerText = "$170,700.00 (60%)";
+            } else {
+                total.innerText = "+$3,420,900.00";
+                r1.innerText = "$1,368,360.00 (40%)";
+                r2.innerText = "$2,052,540.00 (60%)";
+            }
+        }
+
+        function openSecurityGate() {
+            document.getElementById('securityModal').classList.add('active');
+            document.getElementById('masterPinInput').value = '';
+            document.getElementById('masterPinInput').focus();
+        }
+        function closeSecurityGate() {
+            document.getElementById('securityModal').classList.remove('active');
+        }
+        function verifyMasterPin() {
+            const pin = document.getElementById('masterPinInput').value;
+            if(pin === '8888') {
+                alert('🔓 授权成功！欢迎进入【V.V.A 核心客户管理与隐私审计中心】');
+                closeSecurityGate();
+            } else {
+                alert('❌ 密钥错误！安全警报：该次越权尝试已被系统底层日志记录。');
+            }
+        }
+
+        function triggerMasterKillSwitch() {
+            if(confirm("🚨 CRITICAL WARNING: Execute GLOBAL MASTER KILL SWITCH? This will instantly pause all strategies and cancel pending orders for ALL users platform-wide!")) {
+                alert("⚡ GLOBAL MASTER KILL SWITCH EXECUTED: All client terminals locked, strategies halted, and funds secured in smart contract vault.");
+            }
+        }
+
+        const i18nAdmin = {
+            zh: { pool: "全网托管总资产 (AUM)" },
+            en: { pool: "Global Managed AUM" }
+        };
+
+        function setLang(lang) {
+            document.getElementById('btn-zh').classList.toggle('active', lang === 'zh');
+            document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+            document.getElementById('txt-pool').innerText = i18nAdmin[lang].pool;
+        }
+    </script>
+</body>
+</html>

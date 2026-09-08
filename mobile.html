@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VoidVision - Mobile Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', 'Share Tech Mono', sans-serif !important; letter-spacing: 0.8px; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #030508; color: #00ffcc; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+        
+        header { height: 50px; border-bottom: 1px solid rgba(0, 255, 204, 0.15); display: flex; justify-content: space-between; align-items: center; padding: 0 15px; background: rgba(3, 5, 8, 0.95); position: sticky; top: 0; z-index: 50; }
+        
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .logo { font-family: 'Orbitron', sans-serif !important; font-weight: 900; font-size: 13px; color: #fff; text-shadow: 0 0 10px #00ffcc; white-space: nowrap; }
+        .lang-switch-group { display: flex; gap: 2px; }
+        .lang-switch { background: rgba(0, 255, 204, 0.05); border: 1px solid rgba(0, 255, 204, 0.2); color: #8892b0; padding: 3px 5px; font-size: 8px; font-weight: bold; border-radius: 3px; cursor: pointer; font-family: 'Orbitron', sans-serif !important; }
+        .lang-switch.active { border-color: #00ffcc; color: #00ffcc; background: rgba(0, 255, 204, 0.15); }
+
+        .config-btn { background: rgba(0, 255, 204, 0.08); border: 1px solid rgba(0, 255, 204, 0.3); color: #00ffcc; padding: 5px 12px; font-size: 11px; font-weight: bold; border-radius: 3px; cursor: pointer; z-index: 60; }
+
+        main { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 20px; }
+        
+        /* 核心升级：彻底不要任何边框，背景完全融入深空背景，仅靠间距和排版划定层次 */
+        .cyber-card { background: transparent !important; border: none !important; box-shadow: none !important; padding: 4px 0; display: flex; flex-direction: column; }
+        
+        /* 标题大幅放大，确保手机上绝对清晰可见 */
+        .card-title { font-family: 'Share Tech Mono', monospace !important; font-size: 12.5px; color: #8892b0; text-transform: uppercase; margin-bottom: 6px; font-weight: 700; letter-spacing: 1px; }
+        
+        /* 金额数字大幅放大，极具视觉冲击力 */
+        .card-center-box { display: flex; flex-direction: column; justify-content: center; margin: 4px 0; }
+        .card-value { font-family: 'Orbitron', sans-serif !important; font-size: 28px; font-weight: 900; color: #fff; text-shadow: 0 0 12px rgba(255,255,255,0.5); }
+        .card-value.green { color: #00ff66; text-shadow: 0 0 12px rgba(0,255,102,0.5); font-size: 28px; }
+        
+        /* 蜂窝星图舞台：无边框、融于背景 */
+        .mobile-stage { height: 140px; border: none !important; border-radius: 8px; background: radial-gradient(circle at center, #071320 0%, #030508 100%); position: relative; overflow: hidden; }
+        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+
+        .consensus-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 4px; }
+        .consensus-item { background: rgba(8, 14, 22, 0.7); border: 1px solid rgba(0,255,204,0.15); border-radius: 6px; padding: 10px; text-align: center; }
+        .consensus-name { font-size: 10px; color: #8892b0; margin-bottom: 2px; }
+        .consensus-val { font-family: 'Orbitron', sans-serif !important; font-size: 13px; color: #00ff66; font-weight: bold; }
+
+        .chart-tabs { display: flex; gap: 6px; margin-bottom: 6px; }
+        .chart-tab { background: rgba(8, 14, 22, 0.7); border: 1px solid rgba(0,255,204,0.15); color: #8892b0; font-size: 10px; padding: 3px 8px; border-radius: 3px; }
+        .chart-tab.active { background: rgba(0,255,204,0.2); color: #00ffcc; border-color: rgba(0,255,204,0.4); }
+        .mini-line-chart { height: 35px; width: 100%; display: flex; align-items: flex-end; gap: 2px; padding-top: 3px; border-bottom: 1px dashed rgba(0,255,204,0.15); }
+        .line-bar { flex: 1; background: rgba(0,255,102,0.4); border-radius: 2px 2px 0 0; }
+
+        .ledger-receipt-card { background: rgba(8, 14, 22, 0.7); border: 1px solid rgba(0,255,204,0.15); border-radius: 6px; padding: 12px; font-size: 12px; margin-top: 6px; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .receipt-hash { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: #8892b0; background: rgba(0,255,204,0.06); padding: 2px 6px; border-radius: 3px; display: inline-block; margin-top: 4px; }
+
+        .mobile-ticker { height: 28px; border-top: 1px solid rgba(0, 255, 204, 0.15); background: rgba(3, 5, 8, 0.95); display: flex; align-items: center; padding: 0 12px; font-size: 10px; color: #00ffcc; overflow: hidden; white-space: nowrap; margin-top: auto; }
+        .ticker-text { animation: marquee 30s linear infinite; display: inline-block; }
+        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s; backdrop-filter: blur(3px); }
+        .drawer-overlay.active { opacity: 1; visibility: visible; }
+        
+        .config-drawer { position: fixed; bottom: -100%; left: 0; width: 100%; max-height: 80vh; background: rgba(8, 15, 25, 0.98); border-top: 1px solid rgba(0,255,204,0.3); z-index: 999; transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 20px; border-radius: 16px 16px 0 0; display: flex; flex-direction: column; overflow-y: auto; }
+        .config-drawer.active { bottom: 0; }
+        .drawer-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0, 255, 204, 0.2); padding-bottom: 12px; margin-bottom: 15px; }
+        .drawer-title { font-family: 'Orbitron', sans-serif !important; font-weight: bold; font-size: 14px; color: #fff; }
+        .close-btn { color: #ff3366; font-size: 18px; font-weight: bold; cursor: pointer; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 10px; color: #8892b0; margin-bottom: 6px; display: block; text-transform: uppercase; }
+        .strategy-options { display: flex; flex-direction: column; gap: 8px; }
+        .radio-btn { padding: 10px; background: rgba(3,5,8,0.8); border: none; border-radius: 4px; color: #8892b0; font-size: 11px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .radio-btn.selected { background: rgba(0,255,204,0.1); color: #00ffcc; font-weight: bold; }
+        .input-limit { width: 100%; padding: 10px; background: rgba(3,5,8,0.8); border: none; color: #00ffcc; font-size: 15px; font-family: 'Orbitron', sans-serif !important; border-radius: 4px; outline: none; }
+        
+        .drawer-footer-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .sync-btn { background: rgba(0, 255, 204, 0.12); border: 1px solid rgba(0,255,204,0.4); color: #00ffcc; padding: 12px; font-family: 'Orbitron', sans-serif !important; font-weight: bold; text-align: center; border-radius: 4px; cursor: pointer; }
+        .kill-switch-btn { background: rgba(255, 51, 102, 0.15); border: 1px solid #ff3366; color: #ff3366; padding: 12px; font-family: 'Orbitron', sans-serif !important; font-weight: bold; text-align: center; border-radius: 4px; cursor: pointer; }
+        
+        .highlight-value { font-family: 'Orbitron', monospace !important; font-size: 13px; font-weight: bold; color: #00ffcc; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <div class="logo">VOIDVISION <span style="color:#00ff66">(V.V.)</span></div>
+            <div class="lang-switch-group">
+                <button class="lang-switch active" id="btn-zh-m" onclick="setLangM('zh')">中文</button>
+                <button class="lang-switch" id="btn-en-m" onclick="setLangM('en')">EN</button>
+            </div>
+        </div>
+        <button class="config-btn" onclick="toggleDrawer()">CONFIG</button>
+    </header>
+    
+    <main>
+        <!-- 1. 个人资产：彻底隐形边框，金额大字号居中 -->
+        <div class="cyber-card">
+            <div class="card-title" id="m-networth">Client Net Worth (个人净资产)</div>
+            <div class="card-center-box">
+                <div class="card-value">$1,482.50</div>
+            </div>
+            <div style="font-size: 11px; color: #00ff66;" id="m-sync">▲ 链上资产实时对齐 (Cloud Synced)</div>
+        </div>
+        
+        <!-- 2. 盈亏可视化：无边框、大字号 -->
+        <div class="cyber-card">
+            <div class="card-title" id="m-pnl">Performance PNL (盈亏可视化)</div>
+            <div class="chart-tabs">
+                <div class="chart-tab active" onclick="switchChartMobile('day', this)">日</div>
+                <div class="chart-tab" onclick="switchChartMobile('month', this)">月</div>
+                <div class="chart-tab" onclick="switchChartMobile('year', this)">年</div>
+            </div>
+            <div class="card-center-box">
+                <div class="card-value green" id="pnl-amount-m">+$248.60 <span style="font-size:12px; font-weight:normal; color:#00ff66;">(+20.1%)</span></div>
+            </div>
+            <div class="mini-line-chart" id="chartBarsM">
+                <div class="line-bar" style="height: 30%;"></div>
+                <div class="line-bar" style="height: 45%;"></div>
+                <div class="line-bar" style="height: 40%;"></div>
+                <div class="line-bar" style="height: 65%;"></div>
+                <div class="line-bar" style="height: 55%;"></div>
+                <div class="line-bar" style="height: 80%;"></div>
+                <div class="line-bar" style="height: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- 3. 多策略共振 -->
+        <div class="cyber-card">
+            <div class="card-title" id="m-consensus">Multi-Strategy Consensus (多策略共振)</div>
+            <div class="consensus-grid">
+                <div class="consensus-item">
+                    <div class="consensus-name" id="mc-1">均值回归</div>
+                    <div class="consensus-val">91.4%</div>
+                </div>
+                <div class="consensus-item">
+                    <div class="consensus-name" id="mc-2">概率动量</div>
+                    <div class="consensus-val" style="color:#00ffcc;">88.7%</div>
+                </div>
+                <div class="consensus-item">
+                    <div class="consensus-name" id="mc-3">流动性深度</div>
+                    <div class="consensus-val" style="color:#ffcc00;">94.2%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 蜂窝星图舞台 -->
+        <div class="mobile-stage">
+            <canvas id="mobileCanvas"></canvas>
+        </div>
+
+        <!-- 5. 全品类赛事雷达 -->
+        <div class="cyber-card">
+            <div class="card-title" id="m-radar">Omniverse Edge Radar (全品类赛事雷达)</div>
+            <div style="font-size: 12px; color: #8892b0; line-height: 1.6; margin-top: 4px;">
+                <div style="display:flex; justify-content:space-between; color:#fff;"><span>⚽ 足球: Man City vs Liverpool</span><span style="color:#00ff66;">Under (89%)</span></div>
+                <div style="display:flex; justify-content:space-between; color:#8892b0;"><span>🏀 NBA: LAL vs BOS</span><span style="color:#00ffcc;">Edge (82%)</span></div>
+                <div style="display:flex; justify-content:space-between; color:#8892b0;"><span>🎮 电竞: T1 vs GEN.G</span><span style="color:#ffcc00;">Snipe (94%)</span></div>
+                <div style="display:flex; justify-content:space-between; color:#8892b0;"><span>🎾 网球: Djokovic vs Alcaraz</span><span style="color:#00ffcc;">Set 2 (78%)</span></div>
+            </div>
+        </div>
+
+        <!-- 6. 往期订单链上回执 -->
+        <div class="cyber-card">
+            <div class="card-title" id="m-ledger-title">Execution Ledger // 往期订单链上回执</div>
+            <div style="font-size: 11px; color: #8892b0; margin-bottom: 6px;" id="m-ledger-desc">* 实时清算与智能合约哈希核验</div>
+            
+            <div class="ledger-receipt-card">
+                <div class="receipt-row"><span style="color:#fff; font-weight:bold;">Arsenal vs Chelsea (⚽)</span><span style="color:#00ff66; font-weight:bold;">WIN (+ $22.50)</span></div>
+                <div class="receipt-row" style="color: #8892b0;"><span>成交: $1,000.00</span><span>回款: $1,022.50</span></div>
+                <div class="receipt-hash">TxHash: 0x9f8c...3b21</div>
+            </div>
+        </div>
+
+        <!-- 7. 系统状态与风控 -->
+        <div class="cyber-card">
+            <div class="card-title" id="m-status-title">System Status & Risk Control</div>
+            <div style="font-size: 11.5px; color: #8892b0; line-height: 1.5; margin-top: 4px;">
+                <p><span id="m-mode-l">模式</span>: <span class="highlight-value" id="display-mode">平衡 (Balanced)</span> | <span id="m-limit-l">上限</span>: <span class="highlight-value" id="display-limit">25.0</span> USDC</p>
+                <p style="color: #00ff66; margin-top: 3px;">● <span id="m-lat-l">延迟</span>: 18ms | 回测胜率: 78.5% | 夏普: 3.12</p>
+            </div>
+        </div>
+    </main>
+
+    <div class="mobile-ticker">
+        <div class="ticker-text">
+            SYSTEM NOTICE: VoidVision Mobile Terminal Active. [Protocol Notice: 0.1% Routing Fee & 0.25% Success Share] --- [Event ID #8849: Real-time Edge Detected] --- All Systems Synchronized.
+        </div>
+    </div>
+
+    <div class="drawer-overlay" id="overlay" onclick="toggleDrawer()"></div>
+
+    <div class="config-drawer" id="drawer">
+        <div class="drawer-header">
+            <div class="drawer-title" id="m-cfg-title">SYSTEM CONFIG // 系统设置</div>
+            <div class="close-btn" onclick="toggleDrawer()">×</div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" id="m-cfg-strat">Algorithm Aggressiveness (策略模式)</label>
+            <div class="strategy-options">
+                <div class="radio-btn" onclick="selectStrategy(this, '保守 (Conservative)')"><span>Conservative (保守)</span></div>
+                <div class="radio-btn selected" onclick="selectStrategy(this, '平衡 (Balanced)')"><span>Balanced (动态平衡)</span></div>
+                <div class="radio-btn" onclick="selectStrategy(this, '激进 (Aggressive)')"><span>Aggressive (激进)</span></div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" id="m-cfg-limit">Max Order Limit (单笔资金硬上限 / USDC)</label>
+            <input type="number" id="inputLimit" class="input-limit" value="25.0" min="1" step="1">
+            <div style="font-size: 9px; color: #8892b0; margin-top: 4px;" id="m-cfg-note">* 最低执行限额: 5.0 USDC (< 5 自动纠偏)</div>
+        </div>
+        
+        <div class="drawer-footer-actions">
+            <div class="kill-switch-btn" onclick="triggerEmergencyKillM()">[ ⚠️ EMERGENCY KILL SWITCH ]</div>
+            <div class="sync-btn" onclick="syncData()">[ SYNC TO CLOUD ]</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mobileCanvas');
+        const ctx = canvas.getContext('2d');
+        function resize() { canvas.width = canvas.parentElement.clientWidth; canvas.height = canvas.parentElement.clientHeight; }
+        window.addEventListener('resize', resize); resize();
+        const particles = [];
+        for(let i=0; i<25; i++) { particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4, radius: Math.random() * 1.5 + 0.5 }); }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#00ffcc'; ctx.strokeStyle = 'rgba(0, 255, 204, 0.15)'; ctx.lineWidth = 0.8;
+            for(let i=0; i<particles.length; i++) {
+                let p = particles[i]; p.x += p.vx; p.y += p.vy;
+                if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+                for(let j=i+1; j<particles.length; j++) {
+                    let p2 = particles[j]; let dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                    if(dist < 50) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function switchChartMobile(period, el) {
+            document.querySelectorAll('.chart-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            const amt = document.getElementById('pnl-amount-m');
+            const bars = document.getElementById('chartBarsM');
+            if(period === 'day') {
+                amt.innerHTML = "+$248.60 <span style='font-size:12px; font-weight:normal; color:#00ff66;'>(+20.1%)</span>";
+                bars.innerHTML = '<div class="line-bar" style="height:30%;"></div><div class="line-bar" style="height:45%;"></div><div class="line-bar" style="height:40%;"></div><div class="line-bar" style="height:65%;"></div><div class="line-bar" style="height:55%;"></div><div class="line-bar" style="height:80%;"></div><div class="line-bar" style="height:100%;"></div>';
+            } else if(period === 'month') {
+                amt.innerHTML = "+$3,420.50 <span style='font-size:12px; font-weight:normal; color:#00ff66;'>(+45.8%)</span>";
+                bars.innerHTML = '<div class="line-bar" style="height:50%;"></div><div class="line-bar" style="height:60%;"></div><div class="line-bar" style="height:35%;"></div><div class="line-bar" style="height:75%;"></div><div class="line-bar" style="height:90%;"></div><div class="line-bar" style="height:85%;"></div><div class="line-bar" style="height:100%;"></div>';
+            } else {
+                amt.innerHTML = "+$18,940.00 <span style='font-size:12px; font-weight:normal; color:#00ff66;'>(+184.2%)</span>";
+                bars.innerHTML = '<div class="line-bar" style="height:20%;"></div><div class="line-bar" style="height:40%;"></div><div class="line-bar" style="height:55%;"></div><div class="line-bar" style="height:70%;"></div><div class="line-bar" style="height:85%;"></div><div class="line-bar" style="height:95%;"></div><div class="line-bar" style="height:100%;"></div>';
+            }
+        }
+
+        const i18nM = {
+            zh: {
+                networth: "Client Net Worth (个人净资产)", sync: "▲ 链上资产实时对齐 (Cloud Synced)",
+                pnl: "Performance PNL (盈亏可视化)", consensus: "Multi-Strategy Consensus (多策略共振)",
+                c1: "均值回归", c2: "概率动量", c3: "流动性深度",
+                radar: "Omniverse Edge Radar (全品类赛事雷达)",
+                ledger: "Execution Ledger // 往期订单链上回执", desc: "* 实时清算与智能合约哈希核验",
+                stat: "System Status & Risk Control", model: "模式", limit: "上限", lat: "延迟",
+                cfgtitle: "SYSTEM CONFIG // 系统设置", strat: "Algorithm Aggressiveness (策略模式)",
+                note: "* 最低执行限额: 5.0 USDC (< 5 自动纠偏)"
+            },
+            en: {
+                networth: "Client Net Worth", sync: "▲ On-Chain Assets Synced",
+                pnl: "Performance PNL Visualization", consensus: "Multi-Strategy Consensus",
+                c1: "Mean Reversion", c2: "Momentum", c3: "Liquidity Depth",
+                radar: "Omniverse Edge Radar (Multi-Sport)",
+                ledger: "Execution Ledger // History Receipts", desc: "* Smart contract on-chain hash validation",
+                stat: "System Status & Risk Control", model: "Mode", limit: "Limit", lat: "Latency",
+                cfgtitle: "SYSTEM CONFIG // Settings", strat: "Algorithm Aggressiveness",
+                note: "* Min limit: 5.0 USDC (< 5 auto-corrected)"
+            }
+        };
+
+        function setLangM(lang) {
+            document.getElementById('btn-zh-m').classList.toggle('active', lang === 'zh');
+            document.getElementById('btn-en-m').classList.toggle('active', lang === 'en');
+            const d = i18nM[lang];
+            document.getElementById('m-networth').innerText = d.networth;
+            document.getElementById('m-sync').innerText = d.sync;
+            document.getElementById('m-pnl').innerText = d.pnl;
+            document.getElementById('m-consensus').innerText = d.consensus;
+            document.getElementById('mc-1').innerText = d.c1;
+            document.getElementById('mc-2').innerText = d.c2;
+            document.getElementById('mc-3').innerText = d.c3;
+            document.getElementById('m-radar').innerText = d.radar;
+            document.getElementById('m-ledger-title').innerText = d.ledger;
+            document.getElementById('m-ledger-desc').innerText = d.desc;
+            document.getElementById('m-status-title').innerText = d.stat;
+            document.getElementById('m-mode-l').innerText = d.model;
+            document.getElementById('m-limit-l').innerText = d.limit;
+            document.getElementById('m-lat-l').innerText = d.lat;
+            document.getElementById('m-cfg-title').innerText = d.cfgtitle;
+            document.getElementById('m-cfg-strat').innerText = d.strat;
+            document.getElementById('m-cfg-note').innerText = d.note;
+        }
+
+        function triggerEmergencyKillM() {
+            if(confirm("⚠️ WARNING: Execute Emergency Kill Switch?")) {
+                alert("⚡ EMERGENCY KILL SWITCH TRIGGERED: All active strategies paused.");
+                toggleDrawer();
+            }
+        }
+
+        let selectedStrategyStr = '平衡 (Balanced)';
+        function toggleDrawer() { document.getElementById('drawer').classList.toggle('active'); document.getElementById('overlay').classList.toggle('active'); }
+        function selectStrategy(element, name) {
+            document.querySelectorAll('.radio-btn').forEach(b => b.classList.remove('selected'));
+            element.classList.add('selected'); selectedStrategyStr = name;
+        }
+
+        function syncData() {
+            const limitInput = document.getElementById('inputLimit');
+            let limitValue = parseFloat(limitInput.value);
+
+            if (isNaN(limitValue) || limitValue < 5) {
+                limitValue = 5.0; limitInput.value = "5.0";
+                return;
+            }
+
+            document.getElementById('display-mode').innerText = selectedStrategyStr;
+            document.getElementById('display-limit').innerText = limitValue.toFixed(1);
+            
+            const syncPayload = { mode: selectedStrategyStr, limit: limitValue.toFixed(1), timestamp: Date.now() };
+            localStorage.setItem('vv_terminal_state', JSON.stringify(syncPayload));
+            toggleDrawer();
+        }
+
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'vv_terminal_state') {
+                const data = JSON.parse(e.newValue);
+                if(data) {
+                    document.getElementById('display-mode').innerText = data.mode;
+                    document.getElementById('display-limit').innerText = data.limit;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
