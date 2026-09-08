@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>VoidVision - Mobile Secure Connection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', 'Share Tech Mono', sans-serif !important; letter-spacing: 0.8px; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #030508; color: #00ffcc; min-height: 100vh; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at center, #0b192c 0%, #030508 100%); padding: 20px; }
+        .auth-container { width: 100%; max-width: 380px; background: rgba(10, 20, 30, 0.85); border: 1px solid rgba(0, 255, 204, 0.3); border-radius: 12px; padding: 30px 20px; box-shadow: 0 0 30px rgba(0, 255, 204, 0.05); }
+        .logo-box { text-align: center; margin-bottom: 25px; }
+        .logo { font-family: 'Orbitron', sans-serif !important; font-weight: 900; font-size: 20px; color: #fff; text-shadow: 0 0 15px #00ffcc; }
+        .sub-logo { font-family: 'Share Tech Mono', monospace !important; font-size: 10px; color: #8892b0; margin-top: 4px; text-transform: uppercase; }
+        .input-group { margin-bottom: 16px; }
+        .input-label { font-family: 'Share Tech Mono', monospace !important; font-size: 10.5px; color: #8892b0; margin-bottom: 6px; display: block; text-transform: uppercase; }
+        .cyber-input { width: 100%; background: rgba(3, 5, 8, 0.9); border: 1px solid rgba(0, 255, 204, 0.2); padding: 12px; color: #00ffcc; font-size: 14px; border-radius: 4px; outline: none; font-family: 'Share Tech Mono', monospace !important; }
+        .auth-btn { width: 100%; background: rgba(0, 255, 204, 0.1); border: 1px solid #00ffcc; color: #00ffcc; padding: 14px; font-size: 13px; font-weight: bold; font-family: 'Orbitron', sans-serif !important; cursor: pointer; border-radius: 4px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo-box">
+            <div class="logo">VOIDVISION</div>
+            <div class="sub-logo">Mobile API Authorization</div>
+        </div>
+        <div class="input-group">
+            <label class="input-label">Proxy Address (代理钱包地址)</label>
+            <input type="text" class="cyber-input" placeholder="0x...">
+        </div>
+        <div class="input-group">
+            <label class="input-label">Private Key / API Secret</label>
+            <input type="password" class="cyber-input" placeholder="••••••••••••••••">
+        </div>
+        <button class="auth-btn" id="loginBtn" onclick="simulateAuth()">INITIALIZE CONNECTION</button>
+    </div>
+    <script>
+        function simulateAuth() {
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = "CONNECTING...";
+            btn.style.color = "#00ff66";
+            setTimeout(() => {
+                btn.innerText = "CONNECTED";
+                btn.style.background = "#00ffcc";
+                btn.style.color = "#030508";
+                // 鉴权成功后跳转到手机端主控指挥大盘
+                window.location.href = 'mobile.html';
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
