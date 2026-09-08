@@ -107,7 +107,10 @@
                 btn.style.background = "#00ffcc";
                 btn.style.color = "#030508";
                 sec.innerHTML = `<div class="lock-icon" style="border-color:#00ffcc"></div><span style="color:#00ffcc">鉴权成功，正在跳转终端...</span>`;
-                // 这里预留跳转逻辑： window.location.href = 'index.html';
+                
+                // 记录鉴权状态并无缝跳转到主终端
+                localStorage.setItem("vv_api_authorized", "true");
+                window.location.href = 'index.html';
             }, 2500);
         }
     </script>
